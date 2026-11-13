@@ -9,6 +9,9 @@ Scryfall), import them in bulk, build decks from them, and export everything as 
 | `apps/api`        | Express 5 + tsoa + Inversify + Knex + MySQL, port 3400                                                       |
 | `apps/web`        | Next.js 16 + MUI 9 + TanStack Query, port 3000. Talks to the API through its own `/api` route handlers (BFF) |
 
+What's planned next (auth, deployment to Cloudflare, card scanning, mobile
+polish) is in [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ## Set up
 
 ```bash
