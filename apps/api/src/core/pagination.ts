@@ -1,11 +1,6 @@
-/** A page of results plus what the client needs to page through them. */
-export interface Page<T> {
-  results: T[];
-  page: number;
-  limit: number;
-  count: number;
-  totalPages: number;
-}
+import type { Page } from "@mtg/shared";
+
+export type { Page };
 
 /** Which page the caller asked for. */
 export interface PageRequest {

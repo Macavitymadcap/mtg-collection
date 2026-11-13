@@ -1,0 +1,9 @@
+# Build output and generated code
+dist
+.next
+coverage
+apps/api/src/generated
+apps/web/next-env.d.ts
+package-lock.json
+# Written by `next dev`
+apps/web/AGENTS.md

@@ -22,7 +22,11 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.E
         </Typography>
         {subtitle && <Typography color="text.secondary">{subtitle}</Typography>}
       </Stack>
-      {actions && <Stack direction="row" sx={{ gap: 2 }}>{actions}</Stack>}
+      {actions && (
+        <Stack direction="row" sx={{ gap: 2 }}>
+          {actions}
+        </Stack>
+      )}
     </Stack>
   );
 }

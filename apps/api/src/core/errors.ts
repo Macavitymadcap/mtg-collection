@@ -36,7 +36,20 @@ export class NotFound extends ApiError {
 }
 
 export class Conflict extends ApiError {
-  constructor(message = "Conflict") {
-    super(409, message);
+  constructor(message = "Conflict", details?: unknown) {
+    super(409, message, details);
+  }
+}
+
+export class UnprocessableEntity extends ApiError {
+  constructor(message = "Unprocessable entity", details?: unknown) {
+    super(422, message, details);
+  }
+}
+
+/** An upstream service failed or returned something unexpected. */
+export class BadGateway extends ApiError {
+  constructor(message = "Bad gateway") {
+    super(502, message);
   }
 }

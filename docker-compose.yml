@@ -5,7 +5,7 @@ services:
     ports:
       - "3310:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root          # local only
+      MYSQL_ROOT_PASSWORD: root # local only
       MYSQL_DATABASE: mtg
       MYSQL_USER: app
       MYSQL_PASSWORD: app

@@ -12,6 +12,11 @@ const schema = z.object({
   DB_POOL_MAX: z.coerce.number().int().default(10),
   JWT_SECRET: z.string().min(16),
   LOG_LEVEL: z.enum(["error", "warn", "info", "http", "debug"]).default("info"),
+  SCRYFALL_BASE_URL: z.url().default("https://api.scryfall.com"),
+  /** Scryfall requires a User-Agent that identifies the app. */
+  SCRYFALL_USER_AGENT: z.string().min(1).default("mtg-collection/0.1 (personal collection manager)"),
+  /** Source of preconstructed deck lists. */
+  MTGJSON_BASE_URL: z.url().default("https://mtgjson.com/api/v5"),
   CORS_ORIGINS: z
     .string()
     .default("")

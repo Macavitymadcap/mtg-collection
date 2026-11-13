@@ -1,12 +1,11 @@
-import type { JSX } from "react";
-import { PageHeader } from "@/components/layout/page-header";
-import { ComingSoon } from "@/components/coming-soon";
+import { Suspense, type JSX } from "react";
+import { CollectionView } from "@/features/collection/components/collection-view";
 
 export default function CollectionPage(): JSX.Element {
+  // The view reads the URL's query string, which needs a Suspense boundary
   return (
-    <>
-      <PageHeader title="Collection" subtitle="Every card you own" />
-      <ComingSoon phase={3} />
-    </>
+    <Suspense>
+      <CollectionView />
+    </Suspense>
   );
 }

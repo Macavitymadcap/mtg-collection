@@ -21,9 +21,7 @@ export const logger = winston.createLogger({
     withRequestContext(),
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
-    isLocal
-      ? winston.format.combine(winston.format.colorize(), winston.format.simple())
-      : winston.format.json()
+    isLocal ? winston.format.combine(winston.format.colorize(), winston.format.simple()) : winston.format.json(),
   ),
   transports: [new winston.transports.Console()],
 });

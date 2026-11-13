@@ -35,7 +35,7 @@ export async function forward(request: Request, { path, bodySchema }: ForwardOpt
       if (!parsed.success) {
         return NextResponse.json(
           { name: "BadRequest", message: "Validation failed", details: parsed.error.issues },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }

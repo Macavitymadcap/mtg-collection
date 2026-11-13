@@ -9,6 +9,11 @@ import type { CreateDeckRequest, SetDeckCardRequest, UpdateDeckRequest } from ".
 const quantity = z.number().int().min(1).max(999);
 const language = z.string().min(2).max(5);
 const notes = z.string().max(500).nullable();
+const purchasePrice = z.number().min(0).nullable();
+const currency = z
+  .string()
+  .regex(/^[A-Z]{3}$/, "Use a 3-letter currency code, e.g. GBP")
+  .nullable();
 
 export const createCollectionEntrySchema: z.ZodType<CreateCollectionEntryRequest> = z.object({
   scryfallId: z.uuid(),
@@ -16,14 +21,27 @@ export const createCollectionEntrySchema: z.ZodType<CreateCollectionEntryRequest
   finish: z.enum(finishes),
   condition: z.enum(conditions),
   language: language.optional(),
+  purchasePrice: purchasePrice.optional(),
+  currency: currency.optional(),
+  signed: z.boolean().optional(),
+  altered: z.boolean().optional(),
+  misprint: z.boolean().optional(),
+  proxy: z.boolean().optional(),
   notes: notes.optional(),
 });
 
 export const updateCollectionEntrySchema: z.ZodType<UpdateCollectionEntryRequest> = z.object({
+  scryfallId: z.uuid().optional(),
   quantity: quantity.optional(),
   finish: z.enum(finishes).optional(),
   condition: z.enum(conditions).optional(),
   language: language.optional(),
+  purchasePrice: purchasePrice.optional(),
+  currency: currency.optional(),
+  signed: z.boolean().optional(),
+  altered: z.boolean().optional(),
+  misprint: z.boolean().optional(),
+  proxy: z.boolean().optional(),
   notes: notes.optional(),
 });
 

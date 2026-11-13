@@ -14,13 +14,26 @@
     "lint": "npm run lint --workspaces --if-present",
     "db:up": "docker compose up -d mysql",
     "db:down": "docker compose down",
-    "db:migrate": "npm run db:migrate -w @mtg/api"
+    "db:migrate": "npm run db:migrate -w @mtg/api",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "npm run lint --workspaces --if-present -- --fix",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "db:export": "npm run -s db:export -w @mtg/api --",
+    "db:import": "npm run -s db:import -w @mtg/api --",
+    "test:coverage": "npm run build -w @mtg/shared && npm run test:coverage --workspaces --if-present"
   },
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "concurrently": "^10.0.7",
-    "typescript": "^6.0.3"
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2"
   }
 }
