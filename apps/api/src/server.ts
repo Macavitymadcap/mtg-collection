@@ -17,7 +17,7 @@ server.headersTimeout = 66_000;
 function shutdown(signal: string): void {
   logger.info(`${signal} received, shutting down`);
   server.close(() => {
-    container
+    void container
       .get<Knex>(TYPES.Knex)
       .destroy()
       .finally(() => process.exit(0));

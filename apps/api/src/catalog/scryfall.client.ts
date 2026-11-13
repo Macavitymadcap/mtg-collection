@@ -127,7 +127,7 @@ export class ScryfallClient implements CardCatalog {
     } catch (error) {
       if (options && isResponseError(error) && error.status === 404) return options.notFoundAs;
       if (isResponseError(error)) {
-        logger.warn("Scryfall request failed", { status: error.status, details: error.data });
+        logger.warn("Scryfall request failed", { status: error.status, details: error.data as unknown });
         throw new BadGateway(error.status === 429 ? "Scryfall rate limit reached; try again shortly" : "Scryfall request failed");
       }
       if (isValidationError(error)) {

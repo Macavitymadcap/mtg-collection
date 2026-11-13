@@ -9,6 +9,8 @@ import type { AuthUser } from "./types.js";
  * Called by tsoa's generated routes for every @Security decorator.
  * Resolve to allow the request; throw to reject it.
  */
+// tsoa expects a promise; being async also turns the throws below into rejections
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function expressAuthentication(
   request: Request,
   securityName: string,

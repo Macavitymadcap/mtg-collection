@@ -1,0 +1,10 @@
+{
+  // Type-checks and lints everything, including tests and config. The build uses tsconfig.json.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src", "test", "vitest.config.ts"],
+  "exclude": []
+}

@@ -15,8 +15,9 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
-    "typecheck": "tsc -b",
-    "test": "vitest run"
+    "typecheck": "tsc -b && tsc --noEmit -p tsconfig.check.json",
+    "test": "vitest run",
+    "lint": "eslint --max-warnings 0 ."
   },
   "dependencies": {
     "zod": "^4.6.7"

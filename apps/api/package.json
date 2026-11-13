@@ -8,12 +8,13 @@
     "routes": "tsoa spec-and-routes",
     "build": "tsoa spec-and-routes && tsc",
     "start": "node --env-file=.env dist/server.js",
-    "typecheck": "tsoa spec-and-routes && tsc --noEmit",
+    "typecheck": "tsoa spec-and-routes && tsc --noEmit -p tsconfig.check.json",
     "test": "tsoa spec-and-routes && vitest run",
     "token": "tsx --env-file=.env src/scripts/token.ts",
     "db:migrate": "tsx --env-file=.env src/db/migrate.ts latest",
     "db:rollback": "tsx --env-file=.env src/db/migrate.ts rollback",
-    "db:make": "tsx --env-file=.env src/db/migrate.ts make"
+    "db:make": "tsx --env-file=.env src/db/migrate.ts make",
+    "lint": "eslint --max-warnings 0 ."
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

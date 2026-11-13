@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { labels, type CollectionEntry, type CollectionSort, type Page } from "@mtg/shared";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
-import { DataGrid, type GridColDef, type GridSortModel } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef, type GridRowParams, type GridSortModel } from "@mui/x-data-grid";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
 import { formatPrice, printingLabel } from "@/lib/format";
 import { useCollectionParams } from "../use-collection-params";
@@ -110,7 +110,7 @@ export function CollectionTable({ data, loading }: CollectionTableProps): JSX.El
         const sort = option ? (item.sort === "desc" ? (option.desc ?? option.asc) : option.asc) : "name";
         void setParams({ sort, page: 1 });
       }}
-      onRowClick={({ row }) => router.push(`/collection/${row.id}`)}
+      onRowClick={({ row }: GridRowParams<CollectionEntry>) => router.push(`/collection/${row.id}`)}
       disableRowSelectionOnClick
       disableColumnFilter
       autoHeight

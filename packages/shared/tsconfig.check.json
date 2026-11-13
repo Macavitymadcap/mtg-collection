@@ -1,0 +1,10 @@
+{
+  // Type-checks and lints everything, including tests. The build uses tsconfig.json.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": true
+  },
+  "include": ["src"],
+  "exclude": []
+}

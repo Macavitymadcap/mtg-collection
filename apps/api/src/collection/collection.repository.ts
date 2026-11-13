@@ -116,8 +116,8 @@ export class CollectionRepository {
   }
 
   async get(id: number, trx?: Knex.Transaction): Promise<CollectionEntry | null> {
-    const row = await this.joined(trx).where("collection_entry.id", id).first();
-    return row ? toEntry(row as JoinedRow) : null;
+    const row = (await this.joined(trx).where("collection_entry.id", id).first()) as JoinedRow | undefined;
+    return row ? toEntry(row) : null;
   }
 
   async findRow(id: number, trx?: Knex.Transaction): Promise<EntryRow | null> {

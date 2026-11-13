@@ -43,7 +43,7 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
     method: req.method,
     path: req.path,
     // Stack traces only for server errors; 4xx are the caller's mistake
-    ...(isServerError && { error: error instanceof Error ? error.stack : error }),
+    ...(isServerError && { error: error instanceof Error ? error.stack : (error as unknown) }),
   });
 
   const body: ErrorBody = { name: apiError.name, message: apiError.message };
