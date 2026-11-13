@@ -94,4 +94,16 @@ describe("POST /api/import/manabox", () => {
     const response = await request(app).post("/api/import/manabox").set(auth()).send({ csv: "a,b\n1,2" }).expect(400);
     expect(response.body.message).toMatch(/ManaBox/);
   });
+
+  it("refuses rows that would take an entry over 999 copies", async () => {
+    await post([row("Barren Moor", moor.id, 999)]).expect(200);
+    const response = await post([row("Barren Moor", moor.id, 1)]).expect(422);
+    expect(response.body.errors).toEqual([
+      { line: 2, name: "Barren Moor", message: "would take the entry over 999 copies" },
+    ]);
+  });
+
+  it("400s for a file with no rows", async () => {
+    await request(app).post("/api/import/manabox").set(auth()).send({ csv: HEADER }).expect(400);
+  });
 });

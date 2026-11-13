@@ -81,3 +81,30 @@ describe("parseManaboxCsv", () => {
     expect(() => parseManaboxCsv(HEADER)).toThrow(/no rows/);
   });
 });
+
+describe("parseManaboxCsv edge cases", () => {
+  it("rejects files that aren't CSV", () => {
+    expect(() => parseManaboxCsv('"unterminated,quote\nmore')).toThrow(/Couldn't read the CSV/);
+  });
+
+  it("reports bad prices, ids and languages", () => {
+    const row = furnace
+      .replace("74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1", "not-an-id")
+      .replace(",2.57,", ",free,")
+      .replace(",en,", ",x,");
+    const [error] = parseManaboxCsv(csv(row)).errors;
+    expect(error?.message).toBe('missing or invalid Scryfall ID; invalid language "x"; invalid purchase price "free"');
+  });
+
+  it("ignores an unknown currency and an unreadable date", () => {
+    const row = furnace.replace(",GBP,", ",pounds,").replace("2026-11-13T12:32:51.366Z", "yesterday");
+    const [parsed] = parseManaboxCsv(csv(row)).rows;
+    expect(parsed).toMatchObject({ purchasePrice: 2.57, currency: null, addedAt: null });
+  });
+
+  it("reports unknown foil values", () => {
+    expect(parseManaboxCsv(csv(furnace.replace(",normal,", ",shiny,"))).errors[0]?.message).toBe(
+      'unknown foil value "shiny"',
+    );
+  });
+});

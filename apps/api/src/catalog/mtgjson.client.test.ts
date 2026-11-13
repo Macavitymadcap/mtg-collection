@@ -81,3 +81,33 @@ describe("MtgjsonClient", () => {
     expect(urls).toEqual(["https://mtgjson.test/decks/Nope_XYZ.json"]);
   });
 });
+
+describe("MtgjsonClient failures", () => {
+  it.each([
+    ["a server error", () => json({}, 500), /MTGJSON request failed/],
+    ["an unexpected response", () => json({ data: "nope" }), /Unexpected response from MTGJSON/],
+    ["a missing deck list", () => json({}, 404), /deck list is missing/],
+    [
+      "a network failure",
+      () => {
+        throw new TypeError("fetch failed");
+      },
+      /MTGJSON is unreachable/,
+    ],
+  ])("turns %s into a 502", async (_case, respond, message) => {
+    const { mtgjson } = client(respond);
+    await expect(mtgjson.list()).rejects.toMatchObject({ status: 502, message: expect.stringMatching(message) });
+  });
+
+  it("keeps the 20 most recently fetched decks", async () => {
+    const { mtgjson, urls } = client(() =>
+      json({ data: { code: "TST", name: "Deck", type: "Theme Deck", mainBoard: [card("Card")] } }),
+    );
+    for (let i = 0; i < 21; i++) await mtgjson.get(`Deck_${i}`);
+    await mtgjson.get("Deck_20"); // cached
+    await mtgjson.get("Deck_0"); // evicted, fetched again
+
+    expect(urls.filter((url) => url.endsWith("Deck_20.json"))).toHaveLength(1);
+    expect(urls.filter((url) => url.endsWith("Deck_0.json"))).toHaveLength(2);
+  });
+});

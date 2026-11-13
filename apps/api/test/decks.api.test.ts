@@ -116,6 +116,20 @@ describe("decks", () => {
     await setCard(999_999, await addEntry(bolt.id), 1).expect(404);
   });
 
+  it("refuses to rename a deck to a name that's taken, and 404s for unknown decks", async () => {
+    await createDeck("Goblins");
+    const burn = await createDeck("Burn", "modern");
+
+    const response = await request(app).patch(`/api/decks/${burn}`).set(auth()).send({ name: "Goblins" }).expect(409);
+    expect(response.body.message).toBe('There\'s already a deck called "Goblins"');
+    // Keeping its own name is fine
+    await request(app).patch(`/api/decks/${burn}`).set(auth()).send({ name: "Burn", description: null }).expect(200);
+
+    await request(app).get("/api/decks/999999").set(auth()).expect(404);
+    await request(app).patch("/api/decks/999999").set(auth()).send({ name: "X" }).expect(404);
+    await request(app).delete("/api/decks/999999").set(auth()).expect(404);
+  });
+
   it("renames and deletes a deck, leaving the cards in the collection", async () => {
     const deckId = await createDeck();
     const entryId = await addEntry(bolt.id);

@@ -29,6 +29,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Coverage reports
+    "coverage/**",
   ]),
   // Last: turns off rules that would fight Prettier
   eslintConfigPrettier,

@@ -162,3 +162,63 @@ describe("ScryfallClient", () => {
     await expect(client(fn).bySetAndNumber("m19", "156")).rejects.toMatchObject({ status: 502 });
   });
 });
+
+describe("ScryfallClient edge cases", () => {
+  it("doesn't call Scryfall for fewer than 2 characters", async () => {
+    const { fn, calls } = fakeFetch(() => json({ object: "catalog", data: [] }));
+    expect(await client(fn).autocomplete(" s ")).toEqual([]);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("keeps at most 500 autocomplete results, dropping the oldest", async () => {
+    const { fn, calls } = fakeFetch(() => json({ object: "catalog", data: ["x"] }));
+    const scryfall = client(fn);
+    for (let i = 0; i < 501; i++) await scryfall.autocomplete(`q${i}`);
+    await scryfall.autocomplete("q500"); // still cached
+    await scryfall.autocomplete("q0"); // evicted
+    expect(calls).toHaveLength(502);
+  });
+
+  it("turns network failures and other errors into 502s", async () => {
+    const offline = fakeFetch(() => {
+      throw new TypeError("fetch failed");
+    });
+    await expect(client(offline.fn).autocomplete("shock")).rejects.toMatchObject({
+      status: 502,
+      message: "Scryfall is unreachable",
+    });
+
+    const broken = fakeFetch(() => json({ object: "error", status: 500 }, 500));
+    await expect(client(broken.fn).byIds([id(1)])).rejects.toMatchObject({
+      status: 502,
+      message: "Scryfall request failed",
+    });
+  });
+
+  it("returns no printings when the name doesn't match", async () => {
+    const { fn } = fakeFetch(() => json({ object: "error", status: 404 }, 404));
+    expect(await client(fn).printings("Not A Card")).toEqual([]);
+  });
+
+  it("maps unknown rarities and missing fields safely", async () => {
+    const { fn } = fakeFetch(() =>
+      json(
+        scryfallCard(id(1), {
+          rarity: "timeshifted",
+          cmc: undefined,
+          type_line: undefined,
+          image_uris: undefined,
+          card_faces: [{ oracle_id: "aaaaaaaa-0000-4000-8000-000000000000", type_line: "Land", colors: [] }],
+          oracle_id: undefined,
+        }),
+      ),
+    );
+    const card = await client(fn).bySetAndNumber("tst", "1");
+    expect(card).toMatchObject({ rarity: "special", manaValue: 0, typeLine: "Land", imageSmall: null });
+  });
+
+  it("rejects cards without an oracle id anywhere", async () => {
+    const { fn } = fakeFetch(() => json(scryfallCard(id(1), { oracle_id: undefined })));
+    await expect(client(fn).bySetAndNumber("tst", "1")).rejects.toThrow(/no oracle id/);
+  });
+});

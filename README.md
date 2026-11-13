@@ -104,7 +104,8 @@ npm run check         # everything below, in order
 npm run format:check  # Prettier (npm run format to fix)
 npm run lint          # ESLint in every workspace (npm run lint:fix to fix what it can)
 npm run typecheck     # including tests
-npm run test          # API integration tests use the mtg_test database
+npm run test          # shared rules, API (integration tests use the mtg_test database) and web
+npm run test:coverage # the same with coverage reports; fails below the thresholds in each vitest config
 ```
 
 ## Notes

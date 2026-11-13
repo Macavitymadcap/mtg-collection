@@ -81,6 +81,12 @@ describe("POST /api/collection", () => {
     expect(Object.keys(response.body.details)).toEqual(expect.arrayContaining(["body.quantity", "body.finish"]));
   });
 
+  it("refuses to take an entry over 999 copies", async () => {
+    await add({ scryfallId: shock.id, quantity: 999 }).expect(201);
+    const response = await add({ scryfallId: shock.id, quantity: 1 }).expect(400);
+    expect(response.body.message).toBe("An entry can hold at most 999 copies");
+  });
+
   it("needs the cards:write scope", async () => {
     await request(app).post("/api/collection").set(auth("cards:read")).send({}).expect(403);
   });
@@ -155,6 +161,23 @@ describe("GET, PATCH and DELETE /api/collection/{id}", () => {
 
     expect(response.body).toMatchObject({ id: keep.id, quantity: 5 });
     await request(app).get(`/api/collection/${fold.id}`).set(auth()).expect(404);
+  });
+
+  it("404s for entries that don't exist", async () => {
+    await request(app).get("/api/collection/999999").set(auth()).expect(404);
+    await request(app).patch("/api/collection/999999").set(auth()).send({ quantity: 2 }).expect(404);
+  });
+
+  it("keeps the existing price and notes when merging, filling them only if missing", async () => {
+    const { body: priced } = await add({ scryfallId: shock.id, condition: "LP", purchasePrice: 2, currency: "GBP" });
+    const { body: noted } = await add({ scryfallId: shock.id, purchasePrice: 5, currency: "USD", notes: "binder 2" });
+
+    const merged = await request(app)
+      .patch(`/api/collection/${noted.id}`)
+      .set(auth())
+      .send({ condition: "LP" })
+      .expect(200);
+    expect(merged.body).toMatchObject({ id: priced.id, purchasePrice: 2, currency: "GBP", notes: "binder 2" });
   });
 
   it("deletes an entry", async () => {
