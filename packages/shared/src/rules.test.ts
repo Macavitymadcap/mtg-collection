@@ -55,7 +55,15 @@ function line(c: Card, quantity: number, board: Board = "main", owned = 99, allo
   return { entry, board, quantity };
 }
 
-const mountain = card({ name: "Mountain", typeLine: "Basic Land — Mountain", isBasicLand: true, manaCost: null, manaValue: 0, colors: "", colorIdentity: "R" });
+const mountain = card({
+  name: "Mountain",
+  typeLine: "Basic Land — Mountain",
+  isBasicLand: true,
+  manaCost: null,
+  manaValue: 0,
+  colors: "",
+  colorIdentity: "R",
+});
 const codes = (warnings: { code: string }[]) => warnings.map((w) => w.code);
 
 describe("checkDeck: constructed", () => {
@@ -75,11 +83,16 @@ describe("checkDeck: constructed", () => {
     const deck = [line(shock, 3), line(reprint, 2, "side"), line(shock, 5, "maybe"), line(mountain, 60)];
 
     const warnings = checkDeck("modern", deck);
-    expect(warnings).toEqual([{ code: "too-many-copies", cardName: "Shock", message: "5 copies of Shock; modern allows 4." }]);
+    expect(warnings).toEqual([
+      { code: "too-many-copies", cardName: "Shock", message: "5 copies of Shock; modern allows 4." },
+    ]);
   });
 
   it("lets cards that say so have any number of copies", () => {
-    const rats = card({ name: "Relentless Rats", oracleText: "A deck can have any number of cards named Relentless Rats." });
+    const rats = card({
+      name: "Relentless Rats",
+      oracleText: "A deck can have any number of cards named Relentless Rats.",
+    });
     expect(checkDeck("casual", [line(rats, 20)])).toEqual([]);
     expect(checkDeck("modern", [line(rats, 20), line(mountain, 40)])).toEqual([]);
   });
@@ -93,7 +106,11 @@ describe("checkDeck: commander", () => {
   const krenko = card({ name: "Krenko", typeLine: "Legendary Creature — Goblin", colorIdentity: "R" });
 
   it("accepts 100 singleton cards in the commander's colours", () => {
-    const deck = [line(krenko, 1, "commander"), ...Array.from({ length: 60 }, () => line(card(), 1)), line(mountain, 39)];
+    const deck = [
+      line(krenko, 1, "commander"),
+      ...Array.from({ length: 60 }, () => line(card(), 1)),
+      line(mountain, 39),
+    ];
     expect(checkDeck("commander", deck)).toEqual([]);
   });
 
@@ -148,6 +165,8 @@ describe("stats and identity", () => {
   it("uses the commander for a commander deck's identity", () => {
     const commander = line(card({ colorIdentity: "BG" }), 1, "commander");
     expect(deckColorIdentity("commander", [commander, line(card({ colorIdentity: "W" }), 1)])).toBe("BG");
-    expect(deckColorIdentity("casual", [line(card({ colorIdentity: "GW" }), 1), line(card({ colorIdentity: "U" }), 1)])).toBe("WUG");
+    expect(
+      deckColorIdentity("casual", [line(card({ colorIdentity: "GW" }), 1), line(card({ colorIdentity: "U" }), 1)]),
+    ).toBe("WUG");
   });
 });

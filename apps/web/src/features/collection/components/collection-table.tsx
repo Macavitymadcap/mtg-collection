@@ -43,7 +43,14 @@ const columns: GridColDef<CollectionEntry>[] = [
     valueGetter: (_value, row) => row.card.manaValue,
     renderCell: ({ row }) => <ManaSymbols cost={row.card.manaCost} />,
   },
-  { field: "type", headerName: "Type", flex: 2, minWidth: 160, sortable: false, valueGetter: (_value, row) => row.card.typeLine },
+  {
+    field: "type",
+    headerName: "Type",
+    flex: 2,
+    minWidth: 160,
+    sortable: false,
+    valueGetter: (_value, row) => row.card.typeLine,
+  },
   {
     field: "finish",
     headerName: "Finish",
@@ -59,9 +66,11 @@ const columns: GridColDef<CollectionEntry>[] = [
     sortable: false,
     renderCell: ({ row }) => (
       <Stack direction="row" sx={{ gap: 1, alignItems: "center", height: "100%" }}>
-        {flagNames.filter((flag) => row[flag]).map((flag) => (
-          <Chip key={flag} label={flag} size="small" variant="outlined" />
-        ))}
+        {flagNames
+          .filter((flag) => row[flag])
+          .map((flag) => (
+            <Chip key={flag} label={flag} size="small" variant="outlined" />
+          ))}
       </Stack>
     ),
   },

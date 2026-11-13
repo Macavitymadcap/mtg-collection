@@ -50,8 +50,12 @@ export function EntryView({ id }: { id: number }): JSX.Element {
   if (isPending) {
     return (
       <Grid container spacing={6}>
-        <Grid size={{ xs: 12, md: 4 }}><Skeleton variant="rounded" sx={{ aspectRatio: "5 / 7", height: "auto" }} /></Grid>
-        <Grid size={{ xs: 12, md: 8 }}><Skeleton variant="rounded" height={400} /></Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Skeleton variant="rounded" sx={{ aspectRatio: "5 / 7", height: "auto" }} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Skeleton variant="rounded" height={400} />
+        </Grid>
       </Grid>
     );
   }
@@ -132,13 +136,16 @@ export function EntryView({ id }: { id: number }): JSX.Element {
                   </Typography>
                 )}
                 <Typography variant="caption" color="text.secondary">
-                  {card.rarity} · added {formatDate(entry.createdAt)} · {entry.allocated} in decks, {entry.available} free
+                  {card.rarity} · added {formatDate(entry.createdAt)} · {entry.allocated} in decks, {entry.available}{" "}
+                  free
                 </Typography>
               </Stack>
             </Paper>
 
             <Box>
-              <Typography variant="h6" component="h2" sx={{ mb: 3 }}>Your copies</Typography>
+              <Typography variant="h6" component="h2" sx={{ mb: 3 }}>
+                Your copies
+              </Typography>
               <EntryForm
                 // Reset the form when the saved entry changes
                 key={entry.updatedAt}
@@ -156,7 +163,9 @@ export function EntryView({ id }: { id: number }): JSX.Element {
             </Box>
 
             <Box>
-              <Typography variant="h6" component="h2" sx={{ mb: 2 }}>Decks</Typography>
+              <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+                Decks
+              </Typography>
               {entry.usages.length === 0 ? (
                 <Typography color="text.secondary">Not used in any decks.</Typography>
               ) : (
@@ -171,10 +180,20 @@ export function EntryView({ id }: { id: number }): JSX.Element {
         </Grid>
       </Grid>
 
-      <Dialog open={choosingPrinting} onClose={() => setChoosingPrinting(false)} fullWidth maxWidth="lg" aria-labelledby="printing-title">
+      <Dialog
+        open={choosingPrinting}
+        onClose={() => setChoosingPrinting(false)}
+        fullWidth
+        maxWidth="lg"
+        aria-labelledby="printing-title"
+      >
         <DialogTitle id="printing-title">Choose the right printing of {card.name}</DialogTitle>
         <DialogContent dividers>
-          {update.isError && choosingPrinting && <Alert severity="error" sx={{ mb: 3 }}>{errorMessage(update.error)}</Alert>}
+          {update.isError && choosingPrinting && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {errorMessage(update.error)}
+            </Alert>
+          )}
           <PrintingPicker name={card.name} selectedId={card.id} onSelect={changePrinting} />
         </DialogContent>
         <DialogActions>
@@ -186,9 +205,14 @@ export function EntryView({ id }: { id: number }): JSX.Element {
         <DialogTitle id="delete-title">Delete {card.name}?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This removes all {entry.quantity} {entry.quantity === 1 ? "copy" : "copies"} in this entry from your collection.
+            This removes all {entry.quantity} {entry.quantity === 1 ? "copy" : "copies"} in this entry from your
+            collection.
           </DialogContentText>
-          {remove.isError && <Alert severity="error" sx={{ mt: 3 }}>{errorMessage(remove.error)}</Alert>}
+          {remove.isError && (
+            <Alert severity="error" sx={{ mt: 3 }}>
+              {errorMessage(remove.error)}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmingDelete(false)}>Cancel</Button>

@@ -20,7 +20,12 @@ afterAll(() => db.destroy());
 const HEADER =
   "Binder Name,Binder Type,Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Signed,Condition,Language,Proxy,Purchase price currency,Added";
 
-function row(name: string, id: string, quantity: number, extra: { condition?: string; added?: string; price?: string } = {}) {
+function row(
+  name: string,
+  id: string,
+  quantity: number,
+  extra: { condition?: string; added?: string; price?: string } = {},
+) {
   const { condition = "near_mint", added = "2026-11-13T12:32:51.366Z", price = "0.20" } = extra;
   return `old cards,binder,${name},EOC,Set,1,normal,common,${quantity},1,${id},${price},false,false,false,${condition},en,false,GBP,${added}`;
 }
@@ -52,7 +57,12 @@ describe("POST /api/import/manabox", () => {
 
     const entries = await request(app).get("/api/collection").set(auth()).expect(200);
     const great = entries.body.results.find((e: { card: { name: string } }) => e.card.name === "Great Furnace");
-    expect(great).toMatchObject({ quantity: 4, purchasePrice: 0.2, currency: "GBP", createdAt: "2026-11-13T09:00:00.000Z" });
+    expect(great).toMatchObject({
+      quantity: 4,
+      purchasePrice: 0.2,
+      currency: "GBP",
+      createdAt: "2026-11-13T09:00:00.000Z",
+    });
     expect(entries.body.count).toBe(2);
   });
 

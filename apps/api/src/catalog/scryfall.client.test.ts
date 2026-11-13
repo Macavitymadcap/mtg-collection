@@ -49,7 +49,13 @@ function fakeFetch(respond: (call: Call) => Response) {
 }
 
 function client(fetchFn: typeof fetch) {
-  return new ScryfallClient({ baseUrl: BASE, userAgent: "test-agent/1.0", fetch: fetchFn, intervalMs: 0, collectionIntervalMs: 0 });
+  return new ScryfallClient({
+    baseUrl: BASE,
+    userAgent: "test-agent/1.0",
+    fetch: fetchFn,
+    intervalMs: 0,
+    collectionIntervalMs: 0,
+  });
 }
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -93,7 +99,12 @@ describe("ScryfallClient", () => {
     const { fn, calls } = fakeFetch(({ url }) =>
       url.searchParams.get("page") === "2"
         ? json({ object: "list", has_more: false, data: [scryfallCard(id(2))] })
-        : json({ object: "list", has_more: true, next_page: `${BASE}/cards/search?page=2`, data: [scryfallCard(id(1))] })
+        : json({
+            object: "list",
+            has_more: true,
+            next_page: `${BASE}/cards/search?page=2`,
+            data: [scryfallCard(id(1))],
+          }),
     );
 
     const printings = await client(fn).printings("Shock");
@@ -116,7 +127,10 @@ describe("ScryfallClient", () => {
           type_line: "Creature — Human Wizard",
           oracle_text: "Look at the top card…",
           colors: ["U"],
-          image_uris: { small: "https://cards.scryfall.io/small/front.jpg", normal: "https://cards.scryfall.io/normal/front.jpg" },
+          image_uris: {
+            small: "https://cards.scryfall.io/small/front.jpg",
+            normal: "https://cards.scryfall.io/normal/front.jpg",
+          },
         },
         { mana_cost: "", type_line: "Creature — Human Insect", oracle_text: "Flying", colors: ["U"] },
       ],
@@ -136,7 +150,9 @@ describe("ScryfallClient", () => {
 
   it("turns rate limiting and outages into 502s", async () => {
     const { fn } = fakeFetch(() => json({ object: "error", status: 429 }, 429));
-    const error = await client(fn).autocomplete("shock").catch((e: unknown) => e);
+    const error = await client(fn)
+      .autocomplete("shock")
+      .catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({ status: 502, message: expect.stringMatching(/rate limit/) });
   });

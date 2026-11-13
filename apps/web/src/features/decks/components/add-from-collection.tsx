@@ -35,7 +35,9 @@ export function AddFromCollection({ defaultBoard, disabled, onAdd }: AddFromColl
         sx={{ width: { sm: 160 } }}
       >
         {boards.map((b) => (
-          <MenuItem key={b} value={b}>{labels.board[b]}</MenuItem>
+          <MenuItem key={b} value={b}>
+            {labels.board[b]}
+          </MenuItem>
         ))}
       </TextField>
       <Autocomplete<CollectionEntry>
@@ -61,17 +63,24 @@ export function AddFromCollection({ defaultBoard, disabled, onAdd }: AddFromColl
               <span>
                 {entry.card.name}
                 <Typography component="span" variant="body2" color="text.secondary">
-                  {" "}· {printingLabel(entry.card)} · {entry.condition}
+                  {" "}
+                  · {printingLabel(entry.card)} · {entry.condition}
                   {entry.finish !== "nonfoil" && ` · ${entry.finish}`}
                 </Typography>
               </span>
-              <Typography variant="body2" color={entry.available > 0 ? "success.main" : "warning.main"} sx={{ whiteSpace: "nowrap" }}>
+              <Typography
+                variant="body2"
+                color={entry.available > 0 ? "success.main" : "warning.main"}
+                sx={{ whiteSpace: "nowrap" }}
+              >
                 {entry.available} of {entry.quantity} free
               </Typography>
             </Stack>
           </Box>
         )}
-        renderInput={(params) => <TextField {...params} label="Add from your collection" placeholder="Search by name" />}
+        renderInput={(params) => (
+          <TextField {...params} label="Add from your collection" placeholder="Search by name" />
+        )}
       />
     </Stack>
   );

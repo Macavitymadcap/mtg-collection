@@ -30,7 +30,14 @@ interface DeckFormProps {
 }
 
 /** Name, format and description of a deck. */
-export function DeckForm({ defaultValues, submitLabel, onSubmit, onCancel, pending, error }: DeckFormProps): JSX.Element {
+export function DeckForm({
+  defaultValues,
+  submitLabel,
+  onSubmit,
+  onCancel,
+  pending,
+  error,
+}: DeckFormProps): JSX.Element {
   const { control, handleSubmit } = useForm<DeckFormValues>({
     resolver: zodResolver(deckFormSchema),
     defaultValues: {
@@ -52,7 +59,14 @@ export function DeckForm({ defaultValues, submitLabel, onSubmit, onCancel, pendi
           name="name"
           control={control}
           render={({ field, fieldState }) => (
-            <TextField {...field} label="Name" required autoFocus error={Boolean(fieldState.error)} helperText={fieldState.error?.message} />
+            <TextField
+              {...field}
+              label="Name"
+              required
+              autoFocus
+              error={Boolean(fieldState.error)}
+              helperText={fieldState.error?.message}
+            />
           )}
         />
         <Controller
@@ -61,7 +75,9 @@ export function DeckForm({ defaultValues, submitLabel, onSubmit, onCancel, pendi
           render={({ field }) => (
             <TextField {...field} select label="Format">
               {formats.map((format) => (
-                <MenuItem key={format} value={format}>{labels.format[format]}</MenuItem>
+                <MenuItem key={format} value={format}>
+                  {labels.format[format]}
+                </MenuItem>
               ))}
             </TextField>
           )}
@@ -82,7 +98,9 @@ export function DeckForm({ defaultValues, submitLabel, onSubmit, onCancel, pendi
         />
         <Stack direction="row" sx={{ gap: 2, justifyContent: "flex-end" }}>
           <Button onClick={onCancel}>Cancel</Button>
-          <Button type="submit" variant="contained" loading={pending}>{submitLabel}</Button>
+          <Button type="submit" variant="contained" loading={pending}>
+            {submitLabel}
+          </Button>
         </Stack>
       </Stack>
     </Box>

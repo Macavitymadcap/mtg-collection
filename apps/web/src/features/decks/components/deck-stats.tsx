@@ -16,8 +16,12 @@ export function DeckStats({ stats }: { stats: Stats }): JSX.Element {
 
   return (
     <Paper sx={{ p: 4 }}>
-      <Typography variant="h6" component="h2">Mana curve</Typography>
-      <Typography variant="caption" color="text.secondary">Non-land cards by mana value</Typography>
+      <Typography variant="h6" component="h2">
+        Mana curve
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        Non-land cards by mana value
+      </Typography>
       <BarChart
         height={200}
         xAxis={[{ scaleType: "band", data: curve.map(([label]) => label) }]}
@@ -27,9 +31,13 @@ export function DeckStats({ stats }: { stats: Stats }): JSX.Element {
         margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
       />
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>Colours</Typography>
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Colours
+      </Typography>
       {colors.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">No cards yet.</Typography>
+        <Typography variant="body2" color="text.secondary">
+          No cards yet.
+        </Typography>
       ) : (
         <Stack direction="row" sx={{ gap: 3, flexWrap: "wrap" }}>
           {colors.map(([color, value]) => (
@@ -41,11 +49,15 @@ export function DeckStats({ stats }: { stats: Stats }): JSX.Element {
         </Stack>
       )}
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>Types</Typography>
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Types
+      </Typography>
       {types.map(([type, value]) => (
         <Stack key={type} direction="row" sx={{ justifyContent: "space-between" }}>
           <Typography variant="body2">{type}</Typography>
-          <Typography variant="body2" color="text.secondary">{value}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {value}
+          </Typography>
         </Stack>
       ))}
     </Paper>

@@ -55,8 +55,12 @@ export function CollectionView(): JSX.Element {
           onChange={(_event, view: typeof params.view | null) => view && void setParams({ view })}
           aria-label="View"
         >
-          <ToggleButton value="table" aria-label="Table"><TableRowsRounded fontSize="small" /></ToggleButton>
-          <ToggleButton value="grid" aria-label="Images"><GridViewRounded fontSize="small" /></ToggleButton>
+          <ToggleButton value="table" aria-label="Table">
+            <TableRowsRounded fontSize="small" />
+          </ToggleButton>
+          <ToggleButton value="grid" aria-label="Images">
+            <GridViewRounded fontSize="small" />
+          </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
 

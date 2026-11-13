@@ -46,14 +46,14 @@ export function AddCardView(): JSX.Element {
           showMessage(
             created
               ? `Added ${fields.quantity} × ${entry.card.name}`
-              : `Added ${fields.quantity} to your existing ${entry.card.name}: now ${entry.quantity}`
+              : `Added ${fields.quantity} to your existing ${entry.card.name}: now ${entry.quantity}`,
           );
           setAdded((list) => [entry, ...list.filter((e) => e.id !== entry.id)]);
           setName(null);
           setPrinting(null);
           setRound((r) => r + 1);
         },
-      }
+      },
     );
   };
 
@@ -70,7 +70,9 @@ export function AddCardView(): JSX.Element {
 
             {name && (
               <Stack sx={{ gap: 3 }}>
-                <Typography variant="h6" component="h2">Which printing?</Typography>
+                <Typography variant="h6" component="h2">
+                  Which printing?
+                </Typography>
                 <PrintingPicker name={name} selectedId={printing?.id ?? null} onSelect={setPrinting} />
               </Stack>
             )}
@@ -83,10 +85,17 @@ export function AddCardView(): JSX.Element {
                   </Box>
                   <Stack sx={{ gap: 3, flex: 1 }}>
                     <Box>
-                      <Typography variant="h6" component="h2">{printing.name}</Typography>
+                      <Typography variant="h6" component="h2">
+                        {printing.name}
+                      </Typography>
                       <Typography color="text.secondary">
                         {printing.setName} · {printingLabel(printing)}
-                        {printing.manaCost && <> · <ManaSymbols cost={printing.manaCost} /></>}
+                        {printing.manaCost && (
+                          <>
+                            {" "}
+                            · <ManaSymbols cost={printing.manaCost} />
+                          </>
+                        )}
                       </Typography>
                     </Box>
                     <EntryForm
@@ -107,7 +116,9 @@ export function AddCardView(): JSX.Element {
         {added.length > 0 && (
           <Grid size={{ xs: 12, lg: 3 }}>
             <Paper>
-              <Typography variant="subtitle2" sx={{ px: 4, pt: 3 }}>Added this session</Typography>
+              <Typography variant="subtitle2" sx={{ px: 4, pt: 3 }}>
+                Added this session
+              </Typography>
               <List dense>
                 {added.map((entry) => (
                   <ListItemButton key={entry.id} component={Link} href={`/collection/${entry.id}`}>

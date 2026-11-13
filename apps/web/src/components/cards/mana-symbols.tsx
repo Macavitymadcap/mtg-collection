@@ -22,7 +22,11 @@ export function ManaSymbols({ cost, size = 16 }: ManaSymbolsProps): JSX.Element 
     <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
       {faces.map((face, f) => (
         <Box component="span" key={f} sx={{ display: "inline-flex", alignItems: "center", gap: 0.25 }}>
-          {f > 0 && <Box component="span" sx={{ mx: 1, color: "text.secondary" }}>{"//"}</Box>}
+          {f > 0 && (
+            <Box component="span" sx={{ mx: 1, color: "text.secondary" }}>
+              {"//"}
+            </Box>
+          )}
           {[...face.matchAll(/\{([^}]+)\}/g)].map(([text, symbol], i) => (
             <Image key={i} src={symbolUrl(symbol ?? "")} alt={text} title={text} width={size} height={size} />
           ))}

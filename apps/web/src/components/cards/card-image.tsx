@@ -32,7 +32,9 @@ export function CardImage({ card, size = "small", priority }: CardImageProps): J
           textAlign: "center",
         }}
       >
-        <Typography variant="body2" color="text.secondary">{card.name}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {card.name}
+        </Typography>
       </Box>
     );
   }

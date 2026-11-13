@@ -23,7 +23,10 @@ export interface EntryRow extends CopyFlags {
 export type NewEntryRow = Omit<EntryRow, "id" | "createdAt" | "updatedAt"> & { createdAt?: Date };
 
 /** The columns that make an entry unique. Matches the collection_entry_copy_unique index. */
-export type EntryKey = Pick<EntryRow, "cardId" | "finish" | "condition" | "language" | "signed" | "altered" | "misprint" | "proxy">;
+export type EntryKey = Pick<
+  EntryRow,
+  "cardId" | "finish" | "condition" | "language" | "signed" | "altered" | "misprint" | "proxy"
+>;
 
 export function keyOf(entry: EntryKey): EntryKey {
   const { cardId, finish, condition, language, signed, altered, misprint, proxy } = entry;
@@ -44,9 +47,18 @@ const sortColumns: Record<CollectionSort, [string, "asc" | "desc"][]> = {
   "-name": [["card.name", "desc"]],
   createdAt: [["collection_entry.createdAt", "asc"]],
   "-createdAt": [["collection_entry.createdAt", "desc"]],
-  manaValue: [["card.manaValue", "asc"], ["card.name", "asc"]],
-  "-manaValue": [["card.manaValue", "desc"], ["card.name", "asc"]],
-  setCode: [["card.setCode", "asc"], ["card.collectorNumber", "asc"]],
+  manaValue: [
+    ["card.manaValue", "asc"],
+    ["card.name", "asc"],
+  ],
+  "-manaValue": [
+    ["card.manaValue", "desc"],
+    ["card.name", "asc"],
+  ],
+  setCode: [
+    ["card.setCode", "asc"],
+    ["card.collectorNumber", "asc"],
+  ],
 };
 
 type JoinedRow = EntryRow & { allocated: number } & Record<`card_${keyof Card}`, unknown>;
@@ -87,7 +99,11 @@ export class CollectionRepository {
       .select(cardColumns.map((column) => `card.${column} as card_${column}`));
   }
 
-  async list(filter: CollectionFilter, sort: CollectionSort, page: PageRequest): Promise<{ results: CollectionEntry[]; count: number }> {
+  async list(
+    filter: CollectionFilter,
+    sort: CollectionSort,
+    page: PageRequest,
+  ): Promise<{ results: CollectionEntry[]; count: number }> {
     const query = this.joined();
 
     if (filter.search) query.whereILike("card.name", `%${filter.search}%`);
@@ -102,7 +118,10 @@ export class CollectionRepository {
 
     const countQuery = query.clone().clearSelect().clearOrder().count({ count: "*" }).first();
     for (const [column, direction] of sortColumns[sort]) query.orderBy(column, direction);
-    query.orderBy("collection_entry.id", "asc").limit(page.limit).offset((page.page - 1) * page.limit);
+    query
+      .orderBy("collection_entry.id", "asc")
+      .limit(page.limit)
+      .offset((page.page - 1) * page.limit);
 
     const [rows, total] = await Promise.all([query, countQuery]);
     return { results: (rows as JoinedRow[]).map(toEntry), count: Number(total?.count ?? 0) };

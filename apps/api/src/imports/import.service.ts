@@ -19,7 +19,7 @@ export class ImportService {
   constructor(
     @inject(CollectionRepository) private readonly entries: CollectionRepository,
     @inject(CardService) private readonly cards: CardService,
-    @inject(TransactionManager) private readonly tx: TransactionManager
+    @inject(TransactionManager) private readonly tx: TransactionManager,
   ) {}
 
   /**
@@ -40,7 +40,7 @@ export class ImportService {
 
     const groups = groupRows(rows);
     const existing = new Map(
-      (await this.entries.findByCardIds([...cards.keys()])).map((entry) => [keyString(entry), entry])
+      (await this.entries.findByCardIds([...cards.keys()])).map((entry) => [keyString(entry), entry]),
     );
 
     let created = 0;
@@ -113,7 +113,8 @@ function groupRows(rows: ManaboxRow[]): Map<string, Group> {
     group.lines.push(row.line);
     group.row.quantity += row.quantity;
     // Keep the earliest date and the first known price
-    if (entry.createdAt && (!group.row.createdAt || entry.createdAt < group.row.createdAt)) group.row.createdAt = entry.createdAt;
+    if (entry.createdAt && (!group.row.createdAt || entry.createdAt < group.row.createdAt))
+      group.row.createdAt = entry.createdAt;
     if (group.row.purchasePrice === null && entry.purchasePrice !== null) {
       group.row.purchasePrice = entry.purchasePrice;
       group.row.currency = entry.currency;

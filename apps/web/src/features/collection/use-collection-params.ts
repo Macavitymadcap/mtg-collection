@@ -1,12 +1,5 @@
 import { collectionSorts, finishes, rarities } from "@mtg/shared";
-import {
-  parseAsBoolean,
-  parseAsInteger,
-  parseAsString,
-  parseAsStringLiteral,
-  useQueryStates,
-  type Values,
-} from "nuqs";
+import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates, type Values } from "nuqs";
 import type { CollectionQuery } from "./queries";
 
 export const collectionViews = ["table", "grid"] as const;

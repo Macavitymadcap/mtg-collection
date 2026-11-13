@@ -8,7 +8,7 @@ export class Throttle {
 
   constructor(
     private readonly intervalMs: number,
-    private readonly sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+    private readonly sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)),
   ) {}
 
   run<T>(task: () => Promise<T>): Promise<T> {

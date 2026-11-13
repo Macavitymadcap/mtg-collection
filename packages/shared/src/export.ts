@@ -1,6 +1,16 @@
 import { z } from "zod";
 import type { Card } from "./card.js";
-import { boards, conditions, finishes, formats, rarities, type Board, type Condition, type Finish, type Format } from "./constants.js";
+import {
+  boards,
+  conditions,
+  finishes,
+  formats,
+  rarities,
+  type Board,
+  type Condition,
+  type Finish,
+  type Format,
+} from "./constants.js";
 
 export const EXPORT_FORMAT_VERSION = 1;
 
@@ -81,14 +91,17 @@ export const exportFileSchema: z.ZodType<ExportFile> = z
         condition: z.enum(conditions),
         language: z.string().min(2).max(5),
         purchasePrice: z.number().min(0).nullable(),
-        currency: z.string().regex(/^[A-Z]{3}$/).nullable(),
+        currency: z
+          .string()
+          .regex(/^[A-Z]{3}$/)
+          .nullable(),
         signed: z.boolean(),
         altered: z.boolean(),
         misprint: z.boolean(),
         proxy: z.boolean(),
         notes: z.string().max(500).nullable(),
         createdAt: z.iso.datetime(),
-      })
+      }),
     ),
     decks: z.array(
       z.object({
@@ -101,9 +114,9 @@ export const exportFileSchema: z.ZodType<ExportFile> = z
             collectionRef: z.string().min(1),
             board: z.enum(boards),
             quantity: z.number().int().min(1),
-          })
+          }),
         ),
-      })
+      }),
     ),
   })
   .superRefine((file, ctx) => {

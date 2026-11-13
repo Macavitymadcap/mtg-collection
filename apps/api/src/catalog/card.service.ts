@@ -19,7 +19,7 @@ export interface ResolvedCards {
 export class CardService {
   constructor(
     @inject(CardRepository) private readonly cards: CardRepository,
-    @inject(TYPES.CardCatalog) private readonly catalog: CardCatalog
+    @inject(TYPES.CardCatalog) private readonly catalog: CardCatalog,
   ) {}
 
   /**

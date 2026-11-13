@@ -55,7 +55,7 @@ export class ScryfallClient implements CardCatalog {
     if (cached && cached.expires > Date.now()) return cached.names;
 
     const { data } = await this.request(() =>
-      this.http("/cards/autocomplete", { params: { q: key }, schema: catalogSchema })
+      this.http("/cards/autocomplete", { params: { q: key }, schema: catalogSchema }),
     );
 
     if (this.autocompleteCache.size >= AUTOCOMPLETE_CACHE_SIZE) {
@@ -76,7 +76,7 @@ export class ScryfallClient implements CardCatalog {
           params: { q: query, unique: "prints", order: "released", dir: "asc" },
           schema: cardListSchema,
         }),
-      { notFoundAs: null }
+      { notFoundAs: null },
     );
 
     for (let pages = 1; page; pages++) {
@@ -106,8 +106,8 @@ export class ScryfallClient implements CardCatalog {
             method: "POST",
             body: { identifiers: batch.map((id) => ({ id })) },
             schema: cardCollectionSchema,
-          })
-        )
+          }),
+        ),
       );
       found.push(...result.data.map(toCard));
     }
@@ -128,7 +128,9 @@ export class ScryfallClient implements CardCatalog {
       if (options && isResponseError(error) && error.status === 404) return options.notFoundAs;
       if (isResponseError(error)) {
         logger.warn("Scryfall request failed", { status: error.status, details: error.data as unknown });
-        throw new BadGateway(error.status === 429 ? "Scryfall rate limit reached; try again shortly" : "Scryfall request failed");
+        throw new BadGateway(
+          error.status === 429 ? "Scryfall rate limit reached; try again shortly" : "Scryfall request failed",
+        );
       }
       if (isValidationError(error)) {
         logger.error("Unexpected Scryfall response", { issues: error.issues });

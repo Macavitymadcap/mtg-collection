@@ -106,7 +106,15 @@ export interface UpdateCollectionEntryRequest {
   notes?: string | null;
 }
 
-export const collectionSorts = ["name", "-name", "createdAt", "-createdAt", "manaValue", "-manaValue", "setCode"] as const;
+export const collectionSorts = [
+  "name",
+  "-name",
+  "createdAt",
+  "-createdAt",
+  "manaValue",
+  "-manaValue",
+  "setCode",
+] as const;
 export type CollectionSort = (typeof collectionSorts)[number];
 
 /** Filters for listing the collection. */

@@ -22,7 +22,11 @@ const flags = ["signed", "altered", "misprint", "proxy"] as const;
 // Form values are what the inputs hold (the price is text); toRequest turns them into API fields
 const entryFormSchema = z
   .object({
-    quantity: z.number({ error: "Enter a number" }).int("Whole copies only").min(1, "At least 1").max(999, "At most 999"),
+    quantity: z
+      .number({ error: "Enter a number" })
+      .int("Whole copies only")
+      .min(1, "At least 1")
+      .max(999, "At most 999"),
     finish: z.enum(finishes),
     condition: z.enum(conditions),
     language: z.string().trim().toLowerCase().min(2, "Use a language code, e.g. en").max(5),
@@ -30,8 +34,15 @@ const entryFormSchema = z
     altered: z.boolean(),
     misprint: z.boolean(),
     proxy: z.boolean(),
-    purchasePrice: z.string().trim().regex(/^(\d+(\.\d{1,2})?)?$/, "Enter a price like 2.50"),
-    currency: z.string().trim().toUpperCase().regex(/^([A-Z]{3})?$/, "Use a 3-letter code, e.g. GBP"),
+    purchasePrice: z
+      .string()
+      .trim()
+      .regex(/^(\d+(\.\d{1,2})?)?$/, "Enter a price like 2.50"),
+    currency: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^([A-Z]{3})?$/, "Use a 3-letter code, e.g. GBP"),
     notes: z.string().trim().max(500, "Keep it under 500 characters"),
   })
   .refine((values) => !values.purchasePrice || values.currency, { path: ["currency"], message: "Add the currency" });
@@ -100,7 +111,14 @@ interface EntryFormProps {
 }
 
 /** Quantity, finish, condition, flags, price and notes for a set of copies. */
-export function EntryForm({ defaultValues, submitLabel, onSubmit, pending, error, actions }: EntryFormProps): JSX.Element {
+export function EntryForm({
+  defaultValues,
+  submitLabel,
+  onSubmit,
+  pending,
+  error,
+  actions,
+}: EntryFormProps): JSX.Element {
   const { control, handleSubmit, formState } = useForm<EntryFormValues>({
     resolver: zodResolver(entryFormSchema),
     defaultValues,
@@ -119,7 +137,9 @@ export function EntryForm({ defaultValues, submitLabel, onSubmit, pending, error
               render={({ field, fieldState }) => (
                 <TextField
                   {...field}
-                  onChange={(event) => field.onChange(event.target.value === "" ? Number.NaN : Number(event.target.value))}
+                  onChange={(event) =>
+                    field.onChange(event.target.value === "" ? Number.NaN : Number(event.target.value))
+                  }
                   value={Number.isNaN(field.value) ? "" : field.value}
                   type="number"
                   label="Quantity"
@@ -139,7 +159,9 @@ export function EntryForm({ defaultValues, submitLabel, onSubmit, pending, error
               render={({ field }) => (
                 <TextField {...field} select label="Finish" fullWidth>
                   {finishes.map((finish) => (
-                    <MenuItem key={finish} value={finish}>{labels.finish[finish]}</MenuItem>
+                    <MenuItem key={finish} value={finish}>
+                      {labels.finish[finish]}
+                    </MenuItem>
                   ))}
                 </TextField>
               )}
@@ -208,7 +230,9 @@ export function EntryForm({ defaultValues, submitLabel, onSubmit, pending, error
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
-            <FormLabel component="legend" sx={{ typography: "body2" }}>This copy is</FormLabel>
+            <FormLabel component="legend" sx={{ typography: "body2" }}>
+              This copy is
+            </FormLabel>
             <FormGroup row>
               {flags.map((flag) => (
                 <Controller
@@ -218,7 +242,9 @@ export function EntryForm({ defaultValues, submitLabel, onSubmit, pending, error
                   render={({ field }) => (
                     <FormControlLabel
                       label={flag[0]?.toUpperCase() + flag.slice(1)}
-                      control={<Checkbox checked={field.value} onChange={(event) => field.onChange(event.target.checked)} />}
+                      control={
+                        <Checkbox checked={field.value} onChange={(event) => field.onChange(event.target.checked)} />
+                      }
                     />
                   )}
                 />

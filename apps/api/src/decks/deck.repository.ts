@@ -41,7 +41,11 @@ export class DeckRepository {
     return id;
   }
 
-  async update(id: number, values: Partial<Pick<DeckRow, "name" | "format" | "description">>, trx?: Knex.Transaction): Promise<void> {
+  async update(
+    id: number,
+    values: Partial<Pick<DeckRow, "name" | "format" | "description">>,
+    trx?: Knex.Transaction,
+  ): Promise<void> {
     await (trx ?? this.db)("deck")
       .where({ id })
       .update({ ...values, updatedAt: new Date() });

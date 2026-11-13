@@ -63,10 +63,16 @@ export function checkDeck(format: Format, cards: DeckCard[]): DeckWarning[] {
   const played = count(cards, PLAYED_BOARDS);
   const { size } = formatRules;
   if (size?.exact !== undefined && played !== size.exact) {
-    warnings.push({ code: "deck-size", message: `A ${format} deck has exactly ${size.exact} cards; this has ${played}.` });
+    warnings.push({
+      code: "deck-size",
+      message: `A ${format} deck has exactly ${size.exact} cards; this has ${played}.`,
+    });
   }
   if (size?.min !== undefined && played < size.min) {
-    warnings.push({ code: "deck-size", message: `A ${format} deck needs at least ${size.min} cards; this has ${played}.` });
+    warnings.push({
+      code: "deck-size",
+      message: `A ${format} deck needs at least ${size.min} cards; this has ${played}.`,
+    });
   }
   const sideboard = count(cards, ["side"]);
   if (formatRules.maxSideboard !== undefined && sideboard > formatRules.maxSideboard) {
@@ -139,7 +145,16 @@ export function checkDeck(format: Format, cards: DeckCard[]): DeckWarning[] {
 }
 
 // Land ranks above Artifact and Enchantment so artifact lands (and Urza's Saga) count as lands, not spells
-const TYPE_ORDER = ["Creature", "Planeswalker", "Battle", "Instant", "Sorcery", "Land", "Artifact", "Enchantment"] as const;
+const TYPE_ORDER = [
+  "Creature",
+  "Planeswalker",
+  "Battle",
+  "Instant",
+  "Sorcery",
+  "Land",
+  "Artifact",
+  "Enchantment",
+] as const;
 
 /** The type a card is grouped under: the most significant type on its front face. */
 export function primaryType(typeLine: string): string {

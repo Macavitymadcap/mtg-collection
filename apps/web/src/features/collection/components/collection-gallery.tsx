@@ -26,8 +26,16 @@ export function CollectionGallery({ data }: CollectionGalleryProps): JSX.Element
       <Grid container spacing={4}>
         {data.results.map((entry) => (
           <Grid key={entry.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-            <Box component={Link} href={`/collection/${entry.id}`} sx={{ display: "block", color: "inherit", textDecoration: "none" }}>
-              <Badge badgeContent={`×${entry.quantity}`} color="primary" sx={{ display: "block", "& .MuiBadge-badge": { right: 12, top: 12 } }}>
+            <Box
+              component={Link}
+              href={`/collection/${entry.id}`}
+              sx={{ display: "block", color: "inherit", textDecoration: "none" }}
+            >
+              <Badge
+                badgeContent={`×${entry.quantity}`}
+                color="primary"
+                sx={{ display: "block", "& .MuiBadge-badge": { right: 12, top: 12 } }}
+              >
                 <CardImage card={entry.card} />
               </Badge>
               <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1 }} noWrap>

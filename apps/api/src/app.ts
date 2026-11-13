@@ -20,7 +20,7 @@ export function createApp(): Express {
   app.use(
     morgan(":method :url :status :res[content-length] - :response-time ms", {
       stream: { write: (line) => logger.http(line.trim()) },
-    })
+    }),
   );
 
   if (config.NODE_ENV !== "production") {

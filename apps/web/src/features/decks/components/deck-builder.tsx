@@ -64,12 +64,15 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
     const existing = deck.cards.find((card) => card.entry.id === entry.id && card.board === board);
     setCard.mutate(
       { collectionEntryId: entry.id, board, quantity: (existing?.quantity ?? 0) + 1 },
-      { onError, onSuccess: () => showMessage(`Added ${entry.card.name} to ${labels.board[board].toLowerCase()}`) }
+      { onError, onSuccess: () => showMessage(`Added ${entry.card.name} to ${labels.board[board].toLowerCase()}`) },
     );
   };
 
   const changeQuantity = (card: DeckCard, quantity: number): void => {
-    setCard.mutate({ collectionEntryId: card.entry.id, board: card.board, quantity: Math.max(0, quantity) }, { onError });
+    setCard.mutate(
+      { collectionEntryId: card.entry.id, board: card.board, quantity: Math.max(0, quantity) },
+      { onError },
+    );
   };
 
   const hasCommander = deck.cards.some((card) => card.board === "commander");
@@ -83,7 +86,9 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         actions={
           <>
             {back}
-            <Button startIcon={<EditRounded />} onClick={() => setEditing(true)}>Edit</Button>
+            <Button startIcon={<EditRounded />} onClick={() => setEditing(true)}>
+              Edit
+            </Button>
             <Button color="error" startIcon={<DeleteOutlineRounded />} onClick={() => setConfirmingDelete(true)}>
               Delete
             </Button>
@@ -123,9 +128,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
             )}
 
             {usedBoards.length === 0 ? (
-              <Typography color="text.secondary">
-                No cards yet. Search your collection above to add some.
-              </Typography>
+              <Typography color="text.secondary">No cards yet. Search your collection above to add some.</Typography>
             ) : (
               usedBoards.map((board) => (
                 <DeckBoard
@@ -145,7 +148,13 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         </Grid>
       </Grid>
 
-      <Dialog open={editing} onClose={() => setEditing(false)} fullWidth maxWidth="sm" aria-labelledby="edit-deck-title">
+      <Dialog
+        open={editing}
+        onClose={() => setEditing(false)}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="edit-deck-title"
+      >
         <DialogTitle id="edit-deck-title">Edit deck</DialogTitle>
         <DialogContent>
           <DeckForm
@@ -163,7 +172,11 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         <DialogTitle id="delete-deck-title">Delete {deck.name}?</DialogTitle>
         <DialogContent>
           <DialogContentText>The deck is deleted. Its cards stay in your collection.</DialogContentText>
-          {remove.isError && <Alert severity="error" sx={{ mt: 3 }}>{errorMessage(remove.error)}</Alert>}
+          {remove.isError && (
+            <Alert severity="error" sx={{ mt: 3 }}>
+              {errorMessage(remove.error)}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmingDelete(false)}>Cancel</Button>

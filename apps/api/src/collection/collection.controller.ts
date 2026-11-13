@@ -9,7 +9,21 @@ import type {
   UpdateCollectionEntryRequest,
 } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { Body, Controller, Delete, Get, Patch, Path, Post, Query, Response, Route, Security, SuccessResponse, Tags } from "tsoa";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Path,
+  Post,
+  Query,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from "tsoa";
 import { CollectionService } from "./collection.service.js";
 
 @injectable()
@@ -41,7 +55,7 @@ export class CollectionController extends Controller {
     @Query() rarity?: Rarity,
     @Query() finish?: Finish,
     @Query() availableOnly?: boolean,
-    @Query() sort: CollectionSort = "name"
+    @Query() sort: CollectionSort = "name",
   ): Promise<Page<CollectionEntry>> {
     return this.service.list({ search, colors, type, setCode, rarity, finish, availableOnly }, sort, { page, limit });
   }

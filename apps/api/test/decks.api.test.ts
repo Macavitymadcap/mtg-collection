@@ -38,10 +38,23 @@ function setCard(deckId: number, collectionEntryId: number, quantity: number, bo
 
 describe("decks", () => {
   it("creates a deck and refuses a duplicate name", async () => {
-    const response = await request(app).post("/api/decks").set(auth()).send({ name: " Goblins ", format: "commander" }).expect(201);
-    expect(response.body).toMatchObject({ name: "Goblins", cards: [], cardCount: 0, warnings: [{ code: "deck-size" }, { code: "commander-count" }] });
+    const response = await request(app)
+      .post("/api/decks")
+      .set(auth())
+      .send({ name: " Goblins ", format: "commander" })
+      .expect(201);
+    expect(response.body).toMatchObject({
+      name: "Goblins",
+      cards: [],
+      cardCount: 0,
+      warnings: [{ code: "deck-size" }, { code: "commander-count" }],
+    });
 
-    const duplicate = await request(app).post("/api/decks").set(auth()).send({ name: "Goblins", format: "modern" }).expect(409);
+    const duplicate = await request(app)
+      .post("/api/decks")
+      .set(auth())
+      .send({ name: "Goblins", format: "modern" })
+      .expect(409);
     expect(duplicate.body.message).toMatch(/already a deck called "Goblins"/);
   });
 
@@ -52,16 +65,18 @@ describe("decks", () => {
     const response = await setCard(deckId, await addEntry(counterspell.id), 1).expect(200);
 
     expect(response.body).toMatchObject({ colorIdentity: "R", cardCount: 3 });
-    expect(response.body.cards.map((c: { board: string; entry: { card: { name: string } } }) => `${c.board}:${c.entry.card.name}`)).toEqual([
-      "commander:Krenko",
-      "main:Counterspell",
-      "main:Lightning Bolt",
-    ]);
+    expect(
+      response.body.cards.map(
+        (c: { board: string; entry: { card: { name: string } } }) => `${c.board}:${c.entry.card.name}`,
+      ),
+    ).toEqual(["commander:Krenko", "main:Counterspell", "main:Lightning Bolt"]);
     expect(response.body.stats.manaCurve).toMatchObject({ "1": 1, "2": 1, "3": 1 });
     expect(response.body.warnings.map((w: { code: string }) => w.code)).toEqual(["deck-size", "colour-identity"]);
 
     const list = await request(app).get("/api/decks").set(auth()).expect(200);
-    expect(list.body).toEqual([expect.objectContaining({ id: deckId, cardCount: 3, warningCount: 2, colorIdentity: "R" })]);
+    expect(list.body).toEqual([
+      expect.objectContaining({ id: deckId, cardCount: 3, warningCount: 2, colorIdentity: "R" }),
+    ]);
   });
 
   it("tracks allocation across decks, ignoring maybe boards", async () => {
@@ -72,7 +87,9 @@ describe("decks", () => {
     await setCard(casual, entryId, 4, "maybe").expect(200);
     const response = await setCard(casual, entryId, 1).expect(200);
 
-    expect(response.body.warnings).toContainEqual(expect.objectContaining({ code: "over-allocated", cardName: "Lightning Bolt" }));
+    expect(response.body.warnings).toContainEqual(
+      expect.objectContaining({ code: "over-allocated", cardName: "Lightning Bolt" }),
+    );
     const entry = await request(app).get(`/api/collection/${entryId}`).set(auth()).expect(200);
     expect(entry.body).toMatchObject({ allocated: 3, available: -1 });
     expect(entry.body.usages.map((u: { deckName: string; board: string }) => `${u.deckName}:${u.board}`)).toEqual([
@@ -104,7 +121,11 @@ describe("decks", () => {
     const entryId = await addEntry(bolt.id);
     await setCard(deckId, entryId, 1).expect(200);
 
-    const renamed = await request(app).patch(`/api/decks/${deckId}`).set(auth()).send({ name: "Mono red", format: "casual" }).expect(200);
+    const renamed = await request(app)
+      .patch(`/api/decks/${deckId}`)
+      .set(auth())
+      .send({ name: "Mono red", format: "casual" })
+      .expect(200);
     expect(renamed.body).toMatchObject({ name: "Mono red", format: "casual", warnings: [] });
 
     await request(app).delete(`/api/decks/${deckId}`).set(auth()).expect(204);
@@ -120,7 +141,10 @@ describe("collection entries used in decks", () => {
     await setCard(deckId, entryId, 1).expect(200);
 
     const response = await request(app).delete(`/api/collection/${entryId}`).set(auth()).expect(409);
-    expect(response.body).toMatchObject({ message: "Used in Goblins. Remove it from that deck first.", details: { decks: ["Goblins"] } });
+    expect(response.body).toMatchObject({
+      message: "Used in Goblins. Remove it from that deck first.",
+      details: { decks: ["Goblins"] },
+    });
   });
 
   it("keep their places in decks when merged into an identical entry", async () => {
@@ -131,10 +155,16 @@ describe("collection entries used in decks", () => {
     await setCard(deckId, nearMint, 2).expect(200);
 
     // Correct the condition: the two entries become identical and merge
-    const merged = await request(app).patch(`/api/collection/${played}`).set(auth()).send({ condition: "NM" }).expect(200);
+    const merged = await request(app)
+      .patch(`/api/collection/${played}`)
+      .set(auth())
+      .send({ condition: "NM" })
+      .expect(200);
     expect(merged.body).toMatchObject({ id: nearMint, quantity: 5, allocated: 3 });
 
     const deck = await request(app).get(`/api/decks/${deckId}`).set(auth()).expect(200);
-    expect(deck.body.cards).toEqual([expect.objectContaining({ board: "main", quantity: 3, entry: expect.objectContaining({ id: nearMint }) })]);
+    expect(deck.body.cards).toEqual([
+      expect.objectContaining({ board: "main", quantity: 3, entry: expect.objectContaining({ id: nearMint }) }),
+    ]);
   });
 });

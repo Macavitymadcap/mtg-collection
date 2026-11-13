@@ -34,7 +34,12 @@ export function SnackbarProvider({ children }: { children: ReactNode }): JSX.Ele
         onClose={(_event, reason) => reason !== "clickaway" && setOpen(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={message?.severity ?? "success"} variant="filled" onClose={() => setOpen(false)} sx={{ width: "100%" }}>
+        <Alert
+          severity={message?.severity ?? "success"}
+          variant="filled"
+          onClose={() => setOpen(false)}
+          sx={{ width: "100%" }}
+        >
           {message?.text}
         </Alert>
       </Snackbar>

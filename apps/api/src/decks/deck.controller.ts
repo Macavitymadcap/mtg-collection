@@ -1,6 +1,20 @@
 import type { CreateDeckRequest, DeckDetail, DeckSummary, SetDeckCardRequest, UpdateDeckRequest } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { Body, Controller, Delete, Get, Patch, Path, Post, Put, Response, Route, Security, SuccessResponse, Tags } from "tsoa";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Path,
+  Post,
+  Put,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from "tsoa";
 import { DeckService } from "./deck.service.js";
 
 @injectable()

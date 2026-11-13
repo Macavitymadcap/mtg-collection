@@ -9,7 +9,15 @@ import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
 
 const shock = makeCard({ name: "Shock", setCode: "m19" });
 const shockReprint = makeCard({ name: "Shock", setCode: "m20" });
-const forest = makeCard({ name: "Forest", typeLine: "Basic Land — Forest", colors: "", colorIdentity: "G", isBasicLand: true, manaCost: null, manaValue: 0 });
+const forest = makeCard({
+  name: "Forest",
+  typeLine: "Basic Land — Forest",
+  colors: "",
+  colorIdentity: "G",
+  isBasicLand: true,
+  manaCost: null,
+  manaValue: 0,
+});
 const catalog = new FakeCatalog([shock, shockReprint, forest]);
 container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(catalog);
 
@@ -139,7 +147,11 @@ describe("GET, PATCH and DELETE /api/collection/{id}", () => {
     const { body: keep } = await add({ scryfallId: shock.id, quantity: 3, condition: "LP" });
     const { body: fold } = await add({ scryfallId: shock.id, quantity: 2 });
 
-    const response = await request(app).patch(`/api/collection/${fold.id}`).set(auth()).send({ condition: "LP" }).expect(200);
+    const response = await request(app)
+      .patch(`/api/collection/${fold.id}`)
+      .set(auth())
+      .send({ condition: "LP" })
+      .expect(200);
 
     expect(response.body).toMatchObject({ id: keep.id, quantity: 5 });
     await request(app).get(`/api/collection/${fold.id}`).set(auth()).expect(404);

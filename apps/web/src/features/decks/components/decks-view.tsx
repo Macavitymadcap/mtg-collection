@@ -31,7 +31,9 @@ export function DecksView(): JSX.Element {
       {isPending ? (
         <Grid container spacing={4}>
           {Array.from({ length: 3 }, (_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, lg: 4 }}><Skeleton variant="rounded" height={140} /></Grid>
+            <Grid key={i} size={{ xs: 12, sm: 6, lg: 4 }}>
+              <Skeleton variant="rounded" height={140} />
+            </Grid>
           ))}
         </Grid>
       ) : isError ? (
@@ -49,11 +51,22 @@ export function DecksView(): JSX.Element {
                   <CardContent>
                     <Stack sx={{ gap: 2 }}>
                       <Stack direction="row" sx={{ justifyContent: "space-between", gap: 2, alignItems: "flex-start" }}>
-                        <Typography variant="h6" component="h2">{deck.name}</Typography>
+                        <Typography variant="h6" component="h2">
+                          {deck.name}
+                        </Typography>
                         <ColorPips colors={deck.colorIdentity} />
                       </Stack>
                       {deck.description && (
-                        <Typography variant="body2" color="text.secondary" sx={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
                           {deck.description}
                         </Typography>
                       )}

@@ -32,7 +32,9 @@ export class CardRepository {
 
   async findByIds(ids: string[], trx?: Knex.Transaction): Promise<Card[]> {
     if (!ids.length) return [];
-    const rows = await (trx ?? this.db)("card").select([...cardColumns]).whereIn("id", ids);
+    const rows = await (trx ?? this.db)("card")
+      .select([...cardColumns])
+      .whereIn("id", ids);
     return rows as Card[];
   }
 

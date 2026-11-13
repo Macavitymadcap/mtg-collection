@@ -14,7 +14,7 @@ import type { AuthUser } from "./types.js";
 export async function expressAuthentication(
   request: Request,
   securityName: string,
-  scopes: string[] = []
+  scopes: string[] = [],
 ): Promise<AuthUser> {
   if (securityName !== "jwt") throw new Unauthorized(`Unknown security scheme ${securityName}`);
 

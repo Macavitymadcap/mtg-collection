@@ -22,14 +22,19 @@ export class DeckService {
   constructor(
     @inject(DeckRepository) private readonly decks: DeckRepository,
     @inject(CollectionRepository) private readonly entries: CollectionRepository,
-    @inject(TransactionManager) private readonly tx: TransactionManager
+    @inject(TransactionManager) private readonly tx: TransactionManager,
   ) {}
 
   /** Every deck with its counts and warnings, by name. */
   async list(): Promise<DeckSummary[]> {
     const [decks, rows] = await Promise.all([this.decks.list(), this.decks.cards()]);
     const cards = await this.toDeckCards(rows);
-    return decks.map((deck) => this.summarise(deck, cards.filter((card) => card.deckId === deck.id)));
+    return decks.map((deck) =>
+      this.summarise(
+        deck,
+        cards.filter((card) => card.deckId === deck.id),
+      ),
+    );
   }
 
   async get(id: number, trx?: Knex.Transaction): Promise<DeckDetail> {
@@ -43,7 +48,10 @@ export class DeckService {
     const name = request.name.trim();
     return this.tx.run(async (trx) => {
       await this.assertNameFree(name, undefined, trx);
-      const id = await this.decks.insert({ name, format: request.format, description: request.description ?? null }, trx);
+      const id = await this.decks.insert(
+        { name, format: request.format, description: request.description ?? null },
+        trx,
+      );
       return this.get(id, trx);
     });
   }
@@ -92,7 +100,10 @@ export class DeckService {
         const entry = byId.get(row.collectionEntryId);
         return entry ? [{ deckId: row.deckId, entry, board: row.board, quantity: row.quantity }] : [];
       })
-      .sort((a, b) => boards.indexOf(a.board) - boards.indexOf(b.board) || a.entry.card.name.localeCompare(b.entry.card.name));
+      .sort(
+        (a, b) =>
+          boards.indexOf(a.board) - boards.indexOf(b.board) || a.entry.card.name.localeCompare(b.entry.card.name),
+      );
   }
 
   private summarise(deck: DeckRow, cards: DeckCard[]): DeckSummary {

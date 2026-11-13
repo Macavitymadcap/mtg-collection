@@ -46,12 +46,26 @@ export function CollectionFilters(): JSX.Element {
   };
 
   const hasFilters = Boolean(
-    params.search || params.colors || params.type || params.setCode || params.rarity || params.finish || params.availableOnly
+    params.search ||
+    params.colors ||
+    params.type ||
+    params.setCode ||
+    params.rarity ||
+    params.finish ||
+    params.availableOnly,
   );
   const clear = (): void => {
     setSearch("");
     setType("");
-    setFilters({ search: null, colors: null, type: null, setCode: null, rarity: null, finish: null, availableOnly: null });
+    setFilters({
+      search: null,
+      colors: null,
+      type: null,
+      setCode: null,
+      rarity: null,
+      finish: null,
+      availableOnly: null,
+    });
   };
 
   return (
@@ -90,7 +104,9 @@ export function CollectionFilters(): JSX.Element {
         >
           <MenuItem value="">Any</MenuItem>
           {rarities.map((rarity) => (
-            <MenuItem key={rarity} value={rarity} sx={{ textTransform: "capitalize" }}>{rarity}</MenuItem>
+            <MenuItem key={rarity} value={rarity} sx={{ textTransform: "capitalize" }}>
+              {rarity}
+            </MenuItem>
           ))}
         </TextField>
         <TextField
@@ -103,7 +119,9 @@ export function CollectionFilters(): JSX.Element {
         >
           <MenuItem value="">Any</MenuItem>
           {finishes.map((finish) => (
-            <MenuItem key={finish} value={finish}>{labels.finish[finish]}</MenuItem>
+            <MenuItem key={finish} value={finish}>
+              {labels.finish[finish]}
+            </MenuItem>
           ))}
         </TextField>
       </Stack>

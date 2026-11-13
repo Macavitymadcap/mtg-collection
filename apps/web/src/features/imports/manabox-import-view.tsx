@@ -25,7 +25,8 @@ const MAX_BYTES = 4 * 1024 * 1024;
 function Summary({ summary }: { summary: ImportSummary }): JSX.Element {
   return (
     <Typography>
-      {summary.rows} rows · {summary.copies} copies · {summary.created} new {summary.created === 1 ? "entry" : "entries"}
+      {summary.rows} rows · {summary.copies} copies · {summary.created} new{" "}
+      {summary.created === 1 ? "entry" : "entries"}
       {summary.merged > 0 && ` · ${summary.merged} added to entries you already have`}
     </Typography>
   );
@@ -77,7 +78,11 @@ export function ManaboxImportView(): JSX.Element {
             {file ? "Choose a different file" : "Choose CSV file"}
             <input type="file" accept=".csv,text/csv" hidden onChange={(event) => void choose(event)} />
           </Button>
-          {file && <Typography variant="body2" sx={{ mt: 1 }} color="text.secondary">{file.name}</Typography>}
+          {file && (
+            <Typography variant="body2" sx={{ mt: 1 }} color="text.secondary">
+              {file.name}
+            </Typography>
+          )}
         </div>
 
         {fileError && <Alert severity="error">{fileError}</Alert>}
@@ -87,7 +92,11 @@ export function ManaboxImportView(): JSX.Element {
         {result && (
           <Alert
             severity="success"
-            action={<Button component={Link} href="/collection?sort=-createdAt" color="inherit">View collection</Button>}
+            action={
+              <Button component={Link} href="/collection?sort=-createdAt" color="inherit">
+                View collection
+              </Button>
+            }
           >
             <AlertTitle>Imported</AlertTitle>
             <Summary summary={result} />
@@ -115,7 +124,8 @@ export function ManaboxImportView(): JSX.Element {
           <Paper>
             <Alert severity="error" sx={{ borderRadius: 0 }}>
               <AlertTitle>
-                {preview.errors.length} {preview.errors.length === 1 ? "row needs" : "rows need"} fixing. Nothing has been imported.
+                {preview.errors.length} {preview.errors.length === 1 ? "row needs" : "rows need"} fixing. Nothing has
+                been imported.
               </AlertTitle>
               Fix these in ManaBox (or remove them from the file), then choose the file again.
             </Alert>

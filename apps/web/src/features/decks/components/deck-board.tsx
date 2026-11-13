@@ -36,7 +36,10 @@ export function DeckBoard({ board, cards, disabled, onQuantity }: DeckBoardProps
   return (
     <Paper sx={{ p: 4 }}>
       <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-        {labels.board[board]} <Typography component="span" color="text.secondary">({sum(cards)})</Typography>
+        {labels.board[board]}{" "}
+        <Typography component="span" color="text.secondary">
+          ({sum(cards)})
+        </Typography>
       </Typography>
 
       <Stack sx={{ gap: 3 }}>
@@ -76,7 +79,14 @@ export function DeckBoard({ board, cards, disabled, onQuantity }: DeckBoardProps
                     </IconButton>
                   </Stack>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Link component={NextLink} href={`/collection/${entry.id}`} underline="hover" color="inherit" noWrap sx={{ display: "block" }}>
+                    <Link
+                      component={NextLink}
+                      href={`/collection/${entry.id}`}
+                      underline="hover"
+                      color="inherit"
+                      noWrap
+                      sx={{ display: "block" }}
+                    >
                       {entry.card.name}
                     </Link>
                     <Typography variant="caption" color="text.secondary">

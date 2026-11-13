@@ -27,7 +27,7 @@ export class CollectionService {
   constructor(
     @inject(CollectionRepository) private readonly entries: CollectionRepository,
     @inject(CardService) private readonly cards: CardService,
-    @inject(TransactionManager) private readonly tx: TransactionManager
+    @inject(TransactionManager) private readonly tx: TransactionManager,
   ) {}
 
   async list(filter: CollectionFilter, sort: CollectionSort, page: PageRequest): Promise<Page<CollectionEntry>> {
@@ -71,7 +71,11 @@ export class CollectionService {
       let id: number;
       if (existing) {
         id = existing.id;
-        await this.entries.update(id, { quantity: checkedSum(existing.quantity, row.quantity), ...fillGaps(existing, row) }, trx);
+        await this.entries.update(
+          id,
+          { quantity: checkedSum(existing.quantity, row.quantity), ...fillGaps(existing, row) },
+          trx,
+        );
       } else {
         id = await this.entries.insert(row, trx);
       }
@@ -102,7 +106,11 @@ export class CollectionService {
       let resultId = id;
       if (twin && twin.id !== id) {
         // Fold this entry into its twin, taking its places in decks with it
-        await this.entries.update(twin.id, { quantity: checkedSum(twin.quantity, updated.quantity), ...fillGaps(twin, updated) }, trx);
+        await this.entries.update(
+          twin.id,
+          { quantity: checkedSum(twin.quantity, updated.quantity), ...fillGaps(twin, updated) },
+          trx,
+        );
         await this.entries.moveDeckCards(id, twin.id, trx);
         await this.entries.delete(id, trx);
         resultId = twin.id;
@@ -122,7 +130,10 @@ export class CollectionService {
       const usages = await this.entries.usages(id, trx);
       if (usages.length) {
         const names = [...new Set(usages.map((usage) => usage.deckName))];
-        throw new Conflict(`Used in ${names.join(", ")}. Remove it from ${names.length === 1 ? "that deck" : "those decks"} first.`, { decks: names });
+        throw new Conflict(
+          `Used in ${names.join(", ")}. Remove it from ${names.length === 1 ? "that deck" : "those decks"} first.`,
+          { decks: names },
+        );
       }
       if (!(await this.entries.delete(id, trx))) throw new NotFound(`No collection entry ${id}`);
     });

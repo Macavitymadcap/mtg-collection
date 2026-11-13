@@ -69,7 +69,9 @@ export function parseManaboxCsv(csv: string): ManaboxParseResult {
   if (!first) throw new BadRequest("The CSV has no rows");
   const missing = REQUIRED.filter((column) => !(column in first));
   if (missing.length) {
-    throw new BadRequest(`This doesn't look like a ManaBox export: missing ${missing.map((m) => `"${m}"`).join(", ")} column(s)`);
+    throw new BadRequest(
+      `This doesn't look like a ManaBox export: missing ${missing.map((m) => `"${m}"`).join(", ")} column(s)`,
+    );
   }
 
   const rows: ManaboxRow[] = [];

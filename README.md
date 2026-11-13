@@ -3,11 +3,11 @@
 Manage a Magic: The Gathering collection: add the cards you own (looked up on
 Scryfall), build decks from them, and export everything as JSON.
 
-| Workspace | What |
-|---|---|
-| `packages/shared` | `@mtg/shared`: constants, API types, Zod schemas, export format |
-| `apps/api` | Express 5 + tsoa + Inversify + Knex + MySQL, port 3400 |
-| `apps/web` | Next.js 16 + MUI 9 + TanStack Query, port 3000. Talks to the API through its own `/api` route handlers (BFF) |
+| Workspace         | What                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `packages/shared` | `@mtg/shared`: constants, API types, Zod schemas, export format                                              |
+| `apps/api`        | Express 5 + tsoa + Inversify + Knex + MySQL, port 3400                                                       |
+| `apps/web`        | Next.js 16 + MUI 9 + TanStack Query, port 3000. Talks to the API through its own `/api` route handlers (BFF) |
 
 ## Set up
 
