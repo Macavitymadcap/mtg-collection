@@ -11,6 +11,8 @@ export function auth(scope = "cards:read cards:write data:admin"): { Authorizati
 
 /** Empties every table, children first. */
 export async function resetDb(db: Knex): Promise<void> {
+  await db("deck_card").delete();
+  await db("deck").delete();
   await db("collection_entry").delete();
   await db("card").delete();
 }

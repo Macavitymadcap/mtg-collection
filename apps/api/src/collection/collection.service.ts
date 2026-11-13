@@ -9,7 +9,7 @@ import type {
 } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import { CardService } from "../catalog/card.service.js";
-import { BadRequest, NotFound } from "../core/errors.js";
+import { BadRequest, Conflict, NotFound } from "../core/errors.js";
 import { toPage, type PageRequest } from "../core/pagination.js";
 import { TransactionManager } from "../core/transaction.js";
 import { CollectionRepository, keyOf, type EntryRow, type NewEntryRow } from "./collection.repository.js";
@@ -41,7 +41,7 @@ export class CollectionService {
   async get(id: number): Promise<CollectionEntryDetail> {
     const entry = await this.entries.get(id);
     if (!entry) throw new NotFound(`No collection entry ${id}`);
-    return { ...entry, usages: [] };
+    return { ...entry, usages: await this.entries.usages(id) };
   }
 
   /** Adds copies. If an identical entry exists, its quantity goes up instead. */
@@ -101,8 +101,9 @@ export class CollectionService {
 
       let resultId = id;
       if (twin && twin.id !== id) {
-        // Fold this entry into its twin
+        // Fold this entry into its twin, taking its places in decks with it
         await this.entries.update(twin.id, { quantity: checkedSum(twin.quantity, updated.quantity), ...fillGaps(twin, updated) }, trx);
+        await this.entries.moveDeckCards(id, twin.id, trx);
         await this.entries.delete(id, trx);
         resultId = twin.id;
       } else {
@@ -115,8 +116,16 @@ export class CollectionService {
     });
   }
 
+  /** Deletes an entry. Refused (409) while decks use it, naming the decks. */
   async remove(id: number): Promise<void> {
-    if (!(await this.entries.delete(id))) throw new NotFound(`No collection entry ${id}`);
+    await this.tx.run(async (trx) => {
+      const usages = await this.entries.usages(id, trx);
+      if (usages.length) {
+        const names = [...new Set(usages.map((usage) => usage.deckName))];
+        throw new Conflict(`Used in ${names.join(", ")}. Remove it from ${names.length === 1 ? "that deck" : "those decks"} first.`, { decks: names });
+      }
+      if (!(await this.entries.delete(id, trx))) throw new NotFound(`No collection entry ${id}`);
+    });
   }
 }
 

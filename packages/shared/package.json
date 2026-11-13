@@ -15,11 +15,15 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test": "vitest run"
   },
   "dependencies": {
     "zod": "^4.6.7"
   },
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "vitest": "^5.1.0"
+  }
 }

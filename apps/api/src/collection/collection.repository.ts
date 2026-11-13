@@ -1,4 +1,4 @@
-import type { Card, CollectionEntry, CollectionFilter, CollectionSort, CopyFlags } from "@mtg/shared";
+import type { Card, CollectionEntry, CollectionFilter, CollectionSort, CopyFlags, DeckUsage } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
 import { cardColumns } from "../catalog/card.repository.js";
@@ -35,11 +35,9 @@ export function keyString(entry: EntryKey): string {
   return Object.values(keyOf(entry)).join("|");
 }
 
-/**
- * Copies allocated to decks. Decks don't exist yet, so this is 0; it becomes
- * a sum over deck_card when they do.
- */
-const ALLOCATED = "0";
+/** Copies of an entry used by decks. "maybe" boards don't hold real copies, so they don't count. */
+const ALLOCATED = `(select coalesce(sum(deck_card.quantity), 0) from deck_card
+  where deck_card.collectionEntryId = collection_entry.id and deck_card.board <> 'maybe')`;
 
 const sortColumns: Record<CollectionSort, [string, "asc" | "desc"][]> = {
   name: [["card.name", "asc"]],
@@ -110,6 +108,13 @@ export class CollectionRepository {
     return { results: (rows as JoinedRow[]).map(toEntry), count: Number(total?.count ?? 0) };
   }
 
+  /** Several entries by id, in no particular order. */
+  async getMany(ids: number[], trx?: Knex.Transaction): Promise<CollectionEntry[]> {
+    if (!ids.length) return [];
+    const rows = await this.joined(trx).whereIn("collection_entry.id", ids);
+    return (rows as JoinedRow[]).map(toEntry);
+  }
+
   async get(id: number, trx?: Knex.Transaction): Promise<CollectionEntry | null> {
     const row = await this.joined(trx).where("collection_entry.id", id).first();
     return row ? toEntry(row as JoinedRow) : null;
@@ -131,6 +136,29 @@ export class CollectionRepository {
   async findByCardIds(cardIds: string[], trx?: Knex.Transaction): Promise<EntryRow[]> {
     if (!cardIds.length) return [];
     return (trx ?? this.db)<EntryRow>("collection_entry").whereIn("cardId", cardIds);
+  }
+
+  /** Decks that use an entry, by deck name. */
+  async usages(id: number, trx?: Knex.Transaction): Promise<DeckUsage[]> {
+    return (trx ?? this.db)("deck_card")
+      .join("deck", "deck.id", "deck_card.deckId")
+      .where("deck_card.collectionEntryId", id)
+      .select("deck.id as deckId", "deck.name as deckName", "deck_card.board", "deck_card.quantity")
+      .orderBy("deck.name");
+  }
+
+  /** Moves an entry's deck cards to another entry, adding to any it already has on the same board. */
+  async moveDeckCards(fromId: number, toId: number, trx: Knex.Transaction): Promise<void> {
+    const rows: { deckId: number; board: string; quantity: number }[] = await trx("deck_card")
+      .where({ collectionEntryId: fromId })
+      .select("deckId", "board", "quantity");
+    for (const row of rows) {
+      await trx("deck_card")
+        .insert({ ...row, collectionEntryId: toId })
+        .onConflict(["deckId", "collectionEntryId", "board"])
+        .merge({ quantity: trx.raw("deck_card.quantity + ?", [row.quantity]) });
+    }
+    await trx("deck_card").where({ collectionEntryId: fromId }).delete();
   }
 
   async insert(row: NewEntryRow, trx?: Knex.Transaction): Promise<number> {
