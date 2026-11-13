@@ -138,7 +138,8 @@ export function checkDeck(format: Format, cards: DeckCard[]): DeckWarning[] {
   return warnings;
 }
 
-const TYPE_ORDER = ["Creature", "Planeswalker", "Battle", "Instant", "Sorcery", "Artifact", "Enchantment", "Land"] as const;
+// Land ranks above Artifact and Enchantment so artifact lands (and Urza's Saga) count as lands, not spells
+const TYPE_ORDER = ["Creature", "Planeswalker", "Battle", "Instant", "Sorcery", "Land", "Artifact", "Enchantment"] as const;
 
 /** The type a card is grouped under: the most significant type on its front face. */
 export function primaryType(typeLine: string): string {

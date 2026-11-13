@@ -138,7 +138,9 @@ describe("stats and identity", () => {
 
   it("groups by the most significant type on the front face", () => {
     expect(primaryType("Artifact Creature — Golem")).toBe("Creature");
-    expect(primaryType("Artifact Land")).toBe("Artifact");
+    expect(primaryType("Artifact Land")).toBe("Land");
+    expect(primaryType("Enchantment Land — Urza's Saga")).toBe("Land");
+    expect(primaryType("Artifact — Equipment")).toBe("Artifact");
     expect(primaryType("Instant // Sorcery")).toBe("Instant");
     expect(primaryType("Kindred Tribal")).toBe("Other");
   });
