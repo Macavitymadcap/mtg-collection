@@ -15,7 +15,7 @@ export function createApp(): Express {
 
   app.disable("x-powered-by");
   app.use(cors({ origin: config.CORS_ORIGINS }));
-  app.use(express.json({ limit: "5mb" })); // room for CSV imports
+  app.use(express.json({ limit: "25mb" })); // room for CSV imports and whole-database export files
   app.use(requestContext());
   app.use(
     morgan(":method :url :status :res[content-length] - :response-time ms", {

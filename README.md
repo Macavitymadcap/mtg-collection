@@ -33,6 +33,7 @@ npm run dev                                # shared (watch) + API + web
 | `/collection`        | Table or image grid, with filters kept in the URL                                          |
 | `/collection/add`    | Search Scryfall by name, pick the printing, add copies                                     |
 | `/collection/import` | Import a ManaBox CSV or a preconstructed product                                           |
+| `/settings/data`     | Export everything to JSON, or replace the database from an export                          |
 | `/collection/[id]`   | Edit copies (condition, flags, price …), change the printing, see which decks use them     |
 | `/decks`             | Every deck, with format, colours, size and warnings                                        |
 | `/decks/[id]`        | Deck builder: add owned cards to boards, quantities, mana curve, rule and ownership checks |
@@ -78,6 +79,24 @@ curl -s -X POST 'localhost:3400/api/import/precon?dryRun=true' -H "Authorization
   -H 'Content-Type: application/json' -d '{"fileName": "ScrappySurvivors_PIP", "createDeck": true}' | jq
 ```
 
+## Backups and moving data
+
+The Data page (`/settings/data`) exports everything to one JSON file and can
+replace the database from one. From the command line:
+
+```bash
+npm run db:export -- backup.json          # or omit the file to print to stdout
+npm run db:import -- backup.json          # checks the file and shows what would change
+npm run db:import -- backup.json --yes    # replaces everything, in one transaction
+```
+
+The file holds the collection, decks and the card data they use, so it loads
+without Scryfall. Database ids are replaced by references (`c1`, `d1` …), so it
+can be loaded into any empty database, which is the plan for moving to a
+hosted environment later. The file format is `ExportFile` in
+`packages/shared/src/export.ts`; files are checked against its Zod schema
+(including that every reference resolves) before anything is written.
+
 ## Checks
 
 ```bash
@@ -95,3 +114,7 @@ npm run test          # API integration tests use the mtg_test database
 - tsoa generates routes from the controllers. After changing a controller or a shared request type, restart the API (or run `npm run routes -w @mtg/api`).
 - `tsconfig.check.json` in `apps/api` and `packages/shared` covers tests and config files, for type-checking and type-aware linting. Builds use `tsconfig.json`.
 - `.git-blame-ignore-revs` lists formatting-only commits. Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once after cloning.
+
+## Troubleshooting
+
+- **A page reloads itself over and over just after `npm run dev` starts.** Seen a few times during development. It stopped once Next's on-disk Turbopack cache was rebuilt, so a bad cache is the likely cause (not proven). Stop the dev server, run `rm -rf apps/web/.next`, and start it again.

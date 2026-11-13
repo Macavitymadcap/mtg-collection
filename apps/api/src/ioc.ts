@@ -13,6 +13,8 @@ import { CollectionRepository } from "./collection/collection.repository.js";
 import { CollectionService } from "./collection/collection.service.js";
 import { config } from "./config.js";
 import { TransactionManager } from "./core/transaction.js";
+import { DataController } from "./data/data.controller.js";
+import { DataService } from "./data/data.service.js";
 import { createKnex } from "./db/knex.js";
 import { DeckController } from "./decks/deck.controller.js";
 import { DeckRepository } from "./decks/deck.repository.js";
@@ -41,6 +43,7 @@ container.bind(CardService).toSelf();
 container.bind(CollectionRepository).toSelf();
 container.bind(CollectionService).toSelf();
 container.bind(ImportService).toSelf();
+container.bind(DataService).toSelf();
 container.bind(DeckRepository).toSelf();
 container.bind(DeckService).toSelf();
 
@@ -50,6 +53,7 @@ container.bind(CollectionController).toSelf();
 container.bind(ImportController).toSelf();
 container.bind(DeckController).toSelf();
 container.bind(StatsController).toSelf();
+container.bind(DataController).toSelf();
 
 /** tsoa's generated routes import this to get controller instances. */
 export { container as iocContainer };

@@ -14,7 +14,9 @@
     "db:migrate": "tsx --env-file=.env src/db/migrate.ts latest",
     "db:rollback": "tsx --env-file=.env src/db/migrate.ts rollback",
     "db:make": "tsx --env-file=.env src/db/migrate.ts make",
-    "lint": "eslint --max-warnings 0 ."
+    "lint": "eslint --max-warnings 0 .",
+    "db:export": "tsx --env-file=.env src/scripts/db-export.ts",
+    "db:import": "tsx --env-file=.env src/scripts/db-import.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
