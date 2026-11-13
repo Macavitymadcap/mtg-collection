@@ -117,4 +117,4 @@ npm run test          # API integration tests use the mtg_test database
 
 ## Troubleshooting
 
-- **A page reloads itself over and over just after `npm run dev` starts.** Seen a few times during development. It stopped once Next's on-disk Turbopack cache was rebuilt, so a bad cache is the likely cause (not proven). Stop the dev server, run `rm -rf apps/web/.next`, and start it again.
+- **A page reloads itself over and over just after `npm run dev` starts.** Next 16.4's on-disk Turbopack dev cache did this on every warm start, so it's turned off in `apps/web/next.config.ts` (`turbopackFileSystemCacheForDev: false`). Dev restarts compile from scratch as a result. If it ever happens again, stop the dev server, run `rm -rf apps/web/.next`, and start it again.
