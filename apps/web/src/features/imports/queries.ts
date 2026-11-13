@@ -80,7 +80,8 @@ export function usePreconImport(): UseMutationResult<ImportSummary, Error, Preco
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: collectionKeys.all }),
         queryClient.invalidateQueries({ queryKey: deckKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ["precon-preview"] }),
+        // Previews aren't invalidated: the page hides them after an import, and
+        // they refetch (staleTime 0) when shown again
       ]).then(() => undefined);
     },
   });

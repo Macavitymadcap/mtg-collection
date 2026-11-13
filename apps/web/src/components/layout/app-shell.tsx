@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const nav = (
-    <List sx={{ px: 2 }}>
+    <List component="nav" aria-label="Main" sx={{ px: 2 }}>
       {navItems.map(({ label, href, icon: Icon }) => (
         <ListItemButton
           key={href}

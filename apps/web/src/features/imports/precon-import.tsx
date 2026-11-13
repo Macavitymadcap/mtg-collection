@@ -92,7 +92,13 @@ export function PreconImport(): JSX.Element {
 
   const importNow = (): void => {
     if (!request) return;
-    run.mutate(request, { onSuccess: (summary) => !summary.dryRun && setResult(summary) });
+    // Use the name as typed, not the debounced one the preview uses
+    const name = deckName.trim();
+    const { deckName: _previewName, ...rest } = request;
+    run.mutate(
+      { ...rest, ...(createDeck && name && { deckName: name }) },
+      { onSuccess: (summary) => !summary.dryRun && setResult(summary) },
+    );
   };
 
   // The import's own errors (e.g. a deck name taken since the preview) take precedence
