@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { SnackbarProvider } from "@/components/feedback/snackbar-provider";
 import { theme } from "@/theme/theme";
 import { makeQueryClient } from "@/lib/query-client";
 
@@ -18,7 +19,9 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
-        <NuqsAdapter>{children}</NuqsAdapter>
+        <NuqsAdapter>
+          <SnackbarProvider>{children}</SnackbarProvider>
+        </NuqsAdapter>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ThemeProvider>
