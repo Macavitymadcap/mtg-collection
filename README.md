@@ -25,6 +25,22 @@ npm run dev                                # shared (watch) + API + web
 - API docs (Swagger UI): http://localhost:3400/docs
 - API token for curl: `npm run -s token -w @mtg/api`
 
+## Importing from ManaBox
+
+Export your collection from ManaBox as CSV, then preview and import it:
+
+```bash
+TOKEN=$(npm run -s token -w @mtg/api)
+jq -Rs '{csv: .}' ManaBox_Collection.csv > /tmp/manabox.json
+curl -s -X POST 'localhost:3400/api/import/manabox?dryRun=true' \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' --data @/tmp/manabox.json | jq
+# then the same without ?dryRun=true
+```
+
+- Nothing is written if any row has an error; the response lists each bad row by line number.
+- Imports add to the collection. Importing the same file twice doubles the quantities.
+- ManaBox's conditions (Cardmarket grades) are mapped: mint/near_mint → NM, excellent → LP, good/light_played → MP, played → HP, poor → DMG.
+
 ## Checks
 
 ```bash

@@ -12,7 +12,14 @@ export interface ExportCollectionEntry {
   finish: Finish;
   condition: Condition;
   language: string;
+  purchasePrice: number | null;
+  currency: string | null;
+  signed: boolean;
+  altered: boolean;
+  misprint: boolean;
+  proxy: boolean;
   notes: string | null;
+  createdAt: string;
 }
 
 export interface ExportDeckCard {
@@ -73,7 +80,14 @@ export const exportFileSchema: z.ZodType<ExportFile> = z
         finish: z.enum(finishes),
         condition: z.enum(conditions),
         language: z.string().min(2).max(5),
+        purchasePrice: z.number().min(0).nullable(),
+        currency: z.string().regex(/^[A-Z]{3}$/).nullable(),
+        signed: z.boolean(),
+        altered: z.boolean(),
+        misprint: z.boolean(),
+        proxy: z.boolean(),
         notes: z.string().max(500).nullable(),
+        createdAt: z.iso.datetime(),
       })
     ),
     decks: z.array(

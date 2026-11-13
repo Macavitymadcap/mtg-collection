@@ -1,10 +1,20 @@
 import "reflect-metadata";
 import { Container } from "inversify";
 import type { Knex } from "knex";
+import type { CardCatalog } from "./catalog/card-catalog.js";
+import { CardRepository } from "./catalog/card.repository.js";
+import { CardService } from "./catalog/card.service.js";
+import { CatalogController } from "./catalog/catalog.controller.js";
+import { ScryfallClient } from "./catalog/scryfall.client.js";
+import { CollectionController } from "./collection/collection.controller.js";
+import { CollectionRepository } from "./collection/collection.repository.js";
+import { CollectionService } from "./collection/collection.service.js";
 import { config } from "./config.js";
 import { TransactionManager } from "./core/transaction.js";
 import { createKnex } from "./db/knex.js";
 import { HealthController } from "./health/health.controller.js";
+import { ImportController } from "./imports/import.controller.js";
+import { ImportService } from "./imports/import.service.js";
 import { TYPES } from "./types.js";
 
 /** The DI container. Every service is a singleton: one instance per process. */
@@ -12,7 +22,20 @@ export const container = new Container({ defaultScope: "Singleton" });
 
 container.bind<Knex>(TYPES.Knex).toConstantValue(createKnex(config));
 container.bind(TransactionManager).toSelf();
+container
+  .bind<CardCatalog>(TYPES.CardCatalog)
+  .toConstantValue(new ScryfallClient({ baseUrl: config.SCRYFALL_BASE_URL, userAgent: config.SCRYFALL_USER_AGENT }));
+
+container.bind(CardRepository).toSelf();
+container.bind(CardService).toSelf();
+container.bind(CollectionRepository).toSelf();
+container.bind(CollectionService).toSelf();
+container.bind(ImportService).toSelf();
+
 container.bind(HealthController).toSelf();
+container.bind(CatalogController).toSelf();
+container.bind(CollectionController).toSelf();
+container.bind(ImportController).toSelf();
 
 /** tsoa's generated routes import this to get controller instances. */
 export { container as iocContainer };

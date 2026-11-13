@@ -40,3 +40,16 @@ export class Conflict extends ApiError {
     super(409, message);
   }
 }
+
+export class UnprocessableEntity extends ApiError {
+  constructor(message = "Unprocessable entity", details?: unknown) {
+    super(422, message, details);
+  }
+}
+
+/** An upstream service failed or returned something unexpected. */
+export class BadGateway extends ApiError {
+  constructor(message = "Bad gateway") {
+    super(502, message);
+  }
+}

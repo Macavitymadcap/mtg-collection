@@ -12,6 +12,7 @@ export function createKnex(config: Config): Knex {
       password: config.DB_PASSWORD,
       database: config.DB_NAME,
       timezone: "Z", // read and write DATETIME as UTC
+      decimalNumbers: true, // return DECIMAL columns as numbers, not strings
       // MySQL has no boolean type; return TINYINT(1) columns as true/false
       typeCast(field: { type: string; length: number; string(): string | null }, next: () => unknown) {
         if (field.type === "TINY" && field.length === 1) {
