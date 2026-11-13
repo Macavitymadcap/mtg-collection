@@ -1,0 +1,21 @@
+{
+  "entryFile": "src/app.ts",
+  "controllerPathGlobs": ["src/**/*.controller.ts"],
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "spec": {
+    "outputDirectory": "src/generated",
+    "specVersion": 3,
+    "basePath": "/api",
+    "securityDefinitions": {
+      "jwt": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  },
+  "routes": {
+    "routesDir": "src/generated",
+    "basePath": "/api",
+    "middleware": "express",
+    "authenticationModule": "src/auth/authentication.ts",
+    "iocModule": "src/ioc.ts",
+    "esm": true
+  }
+}

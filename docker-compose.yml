@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: mtg-mysql
+    ports:
+      - "3310:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root          # local only
+      MYSQL_DATABASE: mtg
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    volumes:
+      - mtg-mysql-data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot", "--silent"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  mtg-mysql-data:
