@@ -1,6 +1,11 @@
-import type { JSX } from "react";
-import { ManaboxImportView } from "@/features/imports/manabox-import-view";
+import { Suspense, type JSX } from "react";
+import { ImportView } from "@/features/imports/import-view";
 
 export default function ImportPage(): JSX.Element {
-  return <ManaboxImportView />;
+  // The tab is read from the query string, which needs a Suspense boundary
+  return (
+    <Suspense>
+      <ImportView />
+    </Suspense>
+  );
 }

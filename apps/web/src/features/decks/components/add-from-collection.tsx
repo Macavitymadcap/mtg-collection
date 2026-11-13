@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useState, type JSX, type UIEvent } from "react";
 import { boards, labels, type Board, type CollectionEntry } from "@mtg/shared";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
@@ -8,7 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { useCollection } from "@/features/collection/queries";
+import { useCollectionPages } from "@/features/collection/queries";
 import { printingLabel } from "@/lib/format";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 
@@ -23,7 +23,21 @@ export function AddFromCollection({ defaultBoard, disabled, onAdd }: AddFromColl
   const [board, setBoard] = useState<Board>(defaultBoard);
   const [input, setInput] = useState("");
   const search = useDebouncedValue(input.trim(), 250);
-  const { data, isFetching } = useCollection({ page: 1, limit: 25, sort: "name", search: search || undefined });
+  const { data, isFetching, hasNextPage, isFetchingNextPage, fetchNextPage } = useCollectionPages({
+    limit: 50,
+    sort: "name",
+    search: search || undefined,
+  });
+  const options = data?.pages.flatMap((page) => page.results) ?? [];
+  const total = data?.pages[0]?.count ?? 0;
+
+  // Load the next page when the list is scrolled near its end
+  const onListScroll = (event: UIEvent<HTMLElement>): void => {
+    const list = event.currentTarget;
+    if (hasNextPage && !isFetchingNextPage && list.scrollTop + list.clientHeight >= list.scrollHeight - 80) {
+      void fetchNextPage();
+    }
+  };
 
   return (
     <Stack direction={{ xs: "column", sm: "row" }} sx={{ gap: 2 }}>
@@ -42,7 +56,7 @@ export function AddFromCollection({ defaultBoard, disabled, onAdd }: AddFromColl
       </TextField>
       <Autocomplete<CollectionEntry>
         sx={{ flex: 1 }}
-        options={data?.results ?? []}
+        options={options}
         value={null}
         inputValue={input}
         onInputChange={(_event, text, reason) => reason !== "reset" && setInput(text)}
@@ -57,8 +71,9 @@ export function AddFromCollection({ defaultBoard, disabled, onAdd }: AddFromColl
         getOptionLabel={(entry) => entry.card.name}
         isOptionEqualToValue={(a, b) => a.id === b.id}
         noOptionsText={search ? "No owned cards match" : "Your collection is empty"}
-        renderOption={({ key, ...props }, entry) => (
-          <Box component="li" key={key} {...props}>
+        // MUI's default key is the label, which repeats (e.g. several Forest entries)
+        renderOption={({ key: _key, ...props }, entry) => (
+          <Box component="li" key={entry.id} {...props}>
             <Stack direction="row" sx={{ width: "100%", justifyContent: "space-between", gap: 2 }}>
               <span>
                 {entry.card.name}
@@ -78,8 +93,16 @@ export function AddFromCollection({ defaultBoard, disabled, onAdd }: AddFromColl
             </Stack>
           </Box>
         )}
+        slotProps={{ listbox: { onScroll: onListScroll } }}
         renderInput={(params) => (
-          <TextField {...params} label="Add from your collection" placeholder="Search by name" />
+          <TextField
+            {...params}
+            label="Add from your collection"
+            placeholder="Search by name"
+            helperText={
+              total > 0 ? `${total} ${total === 1 ? "match" : "matches"}${hasNextPage ? ", scroll for more" : ""}` : " "
+            }
+          />
         )}
       />
     </Stack>

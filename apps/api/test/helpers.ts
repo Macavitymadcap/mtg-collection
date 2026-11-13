@@ -1,7 +1,8 @@
-import type { Card } from "@mtg/shared";
+import type { Card, PreconSummary } from "@mtg/shared";
 import jwt from "jsonwebtoken";
 import type { Knex } from "knex";
 import type { CardCatalog, CardLookup } from "../src/catalog/card-catalog.js";
+import type { PreconDeck, PreconSource } from "../src/catalog/precon-source.js";
 import { config } from "../src/config.js";
 
 /** A bearer header for the test API. */
@@ -69,5 +70,18 @@ export class FakeCatalog implements CardCatalog {
     this.requested.push(ids);
     const found = this.cards.filter((card) => ids.includes(card.id));
     return { found, notFound: ids.filter((id) => !found.some((card) => card.id === id)) };
+  }
+}
+
+/** An in-memory stand-in for MTGJSON. */
+export class FakePrecons implements PreconSource {
+  constructor(public decks: PreconDeck[] = []) {}
+
+  async list(): Promise<PreconSummary[]> {
+    return this.decks.map(({ cards: _cards, ...summary }) => summary);
+  }
+
+  async get(fileName: string): Promise<PreconDeck | null> {
+    return this.decks.find((deck) => deck.fileName === fileName) ?? null;
   }
 }

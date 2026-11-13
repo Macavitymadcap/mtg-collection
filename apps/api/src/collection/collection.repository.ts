@@ -152,9 +152,65 @@ export class CollectionRepository {
     return (await query) ?? null;
   }
 
+  /** Entries of any printing of these cards, with their card's oracle id, printing and allocation. */
+  async findByOracleIds(
+    oracleIds: string[],
+  ): Promise<(EntryRow & { oracleId: string; setCode: string; collectorNumber: string; allocated: number })[]> {
+    if (!oracleIds.length) return [];
+    const rows = await this.db("collection_entry")
+      .join("card", "card.id", "collection_entry.cardId")
+      .whereIn("card.oracleId", oracleIds)
+      .select<
+        (EntryRow & { oracleId: string; setCode: string; collectorNumber: string; allocated: number | string })[]
+      >(
+        "collection_entry.*",
+        "card.oracleId",
+        "card.setCode",
+        "card.collectorNumber",
+        this.db.raw(`${ALLOCATED} as allocated`),
+      );
+    return rows.map((row) => ({ ...row, allocated: Number(row.allocated) }));
+  }
+
   async findByCardIds(cardIds: string[], trx?: Knex.Transaction): Promise<EntryRow[]> {
     if (!cardIds.length) return [];
     return (trx ?? this.db)<EntryRow>("collection_entry").whereIn("cardId", cardIds);
+  }
+
+  /** Totals across the whole collection. */
+  async totals(): Promise<{
+    entries: number;
+    copies: number;
+    uniqueCards: number;
+    allocated: number;
+    spent: { currency: string; total: number }[];
+  }> {
+    // MySQL returns SUM() as a string and COUNT() as a number, hence Number() below
+    type Num = number | string;
+    const totals = await this.db("collection_entry")
+      .join("card", "card.id", "collection_entry.cardId")
+      .first<{ entries: Num; copies: Num; uniqueCards: Num } | undefined>(
+        this.db.raw("count(*) as entries"),
+        this.db.raw("coalesce(sum(collection_entry.quantity), 0) as copies"),
+        this.db.raw("count(distinct card.oracleId) as uniqueCards"),
+      );
+    const allocated = await this.db("deck_card")
+      .whereNot("board", "maybe")
+      .first<{ total: Num } | undefined>(this.db.raw("coalesce(sum(quantity), 0) as total"));
+    const spent = await this.db("collection_entry")
+      .whereNotNull("purchasePrice")
+      .whereNotNull("currency")
+      .groupBy("currency")
+      .orderBy("currency")
+      .select<{ currency: string; total: Num }[]>("currency", this.db.raw("sum(purchasePrice * quantity) as total"));
+
+    return {
+      entries: Number(totals?.entries ?? 0),
+      copies: Number(totals?.copies ?? 0),
+      uniqueCards: Number(totals?.uniqueCards ?? 0),
+      allocated: Number(allocated?.total ?? 0),
+      spent: spent.map((row) => ({ currency: row.currency, total: Math.round(Number(row.total) * 100) / 100 })),
+    };
   }
 
   /** Decks that use an entry, by deck name. */

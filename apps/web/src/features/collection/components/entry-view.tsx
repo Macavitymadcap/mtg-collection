@@ -3,7 +3,7 @@
 import { useState, type JSX } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Card, UpdateCollectionEntryRequest } from "@mtg/shared";
+import { labels, type Card, type UpdateCollectionEntryRequest } from "@mtg/shared";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
@@ -17,6 +17,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
+import MuiLink from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
@@ -171,7 +172,11 @@ export function EntryView({ id }: { id: number }): JSX.Element {
               ) : (
                 entry.usages.map((usage) => (
                   <Typography key={`${usage.deckId}-${usage.board}`}>
-                    {usage.quantity} × in {usage.deckName} ({usage.board})
+                    {usage.quantity} × in{" "}
+                    <MuiLink component={Link} href={`/decks/${usage.deckId}`}>
+                      {usage.deckName}
+                    </MuiLink>{" "}
+                    ({labels.board[usage.board].toLowerCase()})
                   </Typography>
                 ))
               )}

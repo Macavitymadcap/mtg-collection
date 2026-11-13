@@ -9,9 +9,12 @@ import type {
 } from "@mtg/shared";
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
+  type InfiniteData,
+  type UseInfiniteQueryResult,
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
@@ -28,6 +31,7 @@ export const collectionKeys = {
   all: ["collection"] as const,
   list: (query: CollectionQuery) => [...collectionKeys.all, "list", query] as const,
   detail: (id: number) => [...collectionKeys.all, "detail", id] as const,
+  infinite: (query: Omit<CollectionQuery, "page">) => [...collectionKeys.all, "infinite", query] as const,
 };
 
 /** One page of the collection. Keeps showing the previous page while the next loads. */
@@ -35,6 +39,22 @@ export function useCollection(query: CollectionQuery): UseQueryResult<Page<Colle
   return useQuery({
     queryKey: collectionKeys.list(query),
     queryFn: () => api<Page<CollectionEntry>>("/collection", { params: { ...query } }),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/**
+ * The collection a page at a time, for lists that load more as you scroll.
+ * Call fetchNextPage() to load the next page.
+ */
+export function useCollectionPages(
+  query: Omit<CollectionQuery, "page">,
+): UseInfiniteQueryResult<InfiniteData<Page<CollectionEntry>>> {
+  return useInfiniteQuery({
+    queryKey: collectionKeys.infinite(query),
+    queryFn: ({ pageParam }) => api<Page<CollectionEntry>>("/collection", { params: { ...query, page: pageParam } }),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.page < last.totalPages ? last.page + 1 : undefined),
     placeholderData: keepPreviousData,
   });
 }

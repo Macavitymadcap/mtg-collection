@@ -7,17 +7,10 @@ import UploadFileRounded from "@mui/icons-material/UploadFileRounded";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { PageHeader } from "@/components/layout/page-header";
 import { errorMessage } from "@/lib/errors";
+import { ImportErrors } from "./import-errors";
 import { useManaboxImport } from "./queries";
 
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -33,7 +26,7 @@ function Summary({ summary }: { summary: ImportSummary }): JSX.Element {
 }
 
 /** Upload a ManaBox CSV, preview what it will do, then import it. */
-export function ManaboxImportView(): JSX.Element {
+export function ManaboxImport(): JSX.Element {
   const run = useManaboxImport();
   const [file, setFile] = useState<{ name: string; csv: string } | null>(null);
   const [preview, setPreview] = useState<ImportSummary | null>(null);
@@ -65,8 +58,6 @@ export function ManaboxImportView(): JSX.Element {
 
   return (
     <>
-      <PageHeader title="Import from ManaBox" subtitle="Add the cards from a ManaBox collection export (CSV)" />
-
       <Stack sx={{ gap: 4, maxWidth: 900 }}>
         <Typography color="text.secondary">
           In ManaBox, export your collection as CSV. Choose the file here to see what will be imported; nothing is saved
@@ -121,35 +112,10 @@ export function ManaboxImportView(): JSX.Element {
         )}
 
         {preview && preview.errors.length > 0 && (
-          <Paper>
-            <Alert severity="error" sx={{ borderRadius: 0 }}>
-              <AlertTitle>
-                {preview.errors.length} {preview.errors.length === 1 ? "row needs" : "rows need"} fixing. Nothing has
-                been imported.
-              </AlertTitle>
-              Fix these in ManaBox (or remove them from the file), then choose the file again.
-            </Alert>
-            <TableContainer sx={{ maxHeight: 480 }}>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Line</TableCell>
-                    <TableCell>Card</TableCell>
-                    <TableCell>Problem</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {preview.errors.map((error) => (
-                    <TableRow key={`${error.line}-${error.message}`}>
-                      <TableCell>{error.line}</TableCell>
-                      <TableCell>{error.name ?? "—"}</TableCell>
-                      <TableCell>{error.message}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+          <ImportErrors
+            errors={preview.errors}
+            advice="Fix these in ManaBox (or remove them from the file), then choose the file again."
+          />
         )}
       </Stack>
     </>

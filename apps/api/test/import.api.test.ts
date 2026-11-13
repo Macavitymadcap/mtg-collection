@@ -48,7 +48,7 @@ describe("POST /api/import/manabox", () => {
   it("previews without writing", async () => {
     const response = await post(lines, true).expect(200);
 
-    expect(response.body).toEqual({ rows: 3, copies: 9, created: 2, merged: 0, errors: [], dryRun: true });
+    expect(response.body).toEqual({ rows: 3, copies: 9, created: 2, merged: 0, errors: [], dryRun: true, deck: null });
     expect(await db("collection_entry").count({ n: "*" }).first()).toEqual({ n: 0 });
   });
 

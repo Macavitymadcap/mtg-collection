@@ -1,4 +1,4 @@
-import type { ImportSummary, ManaboxImportRequest } from "@mtg/shared";
+import type { ImportSummary, ManaboxImportRequest, PreconImportRequest } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import { Body, Controller, Post, Query, Response, Route, Security, Tags } from "tsoa";
 import { ImportService } from "./import.service.js";
@@ -23,6 +23,22 @@ export class ImportController extends Controller {
   @Response(422, "Some rows have errors; nothing was imported")
   public async manabox(@Body() body: ManaboxImportRequest, @Query() dryRun = false): Promise<ImportSummary> {
     const summary = await this.service.importManabox(body.csv, dryRun);
+    if (summary.errors.length) this.setStatus(422);
+    return summary;
+  }
+
+  /**
+   * Adds every card in a preconstructed product (from MTGJSON) to the
+   * collection as near-mint English copies, keeping foils. With createDeck,
+   * also creates a deck holding them, commander included. Same rules as the
+   * ManaBox import: all or nothing, 422 with the problems, dryRun to preview.
+   */
+  @Post("precon")
+  @Security("jwt", ["cards:write"])
+  @Response(404, "No such product")
+  @Response(422, "Some cards have problems, or the deck name is taken; nothing was imported")
+  public async precon(@Body() body: PreconImportRequest, @Query() dryRun = false): Promise<ImportSummary> {
+    const summary = await this.service.importPrecon(body, dryRun);
     if (summary.errors.length) this.setStatus(422);
     return summary;
   }
