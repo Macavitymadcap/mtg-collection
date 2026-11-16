@@ -100,7 +100,9 @@ export function EntryView({ id }: { id: number }): JSX.Element {
       <Grid container spacing={6}>
         <Grid size={{ xs: 12, sm: 5, md: 4 }}>
           <Stack sx={{ gap: 3 }}>
-            <CardImage card={card} size="normal" priority />
+            <Box sx={{ width: "100%", maxWidth: { xs: 300, sm: "none" }, mx: "auto" }}>
+              <CardImage card={card} size="normal" priority />
+            </Box>
             <Stack direction="row" sx={{ gap: 2, flexWrap: "wrap" }}>
               <Button startIcon={<SwapHorizRounded />} onClick={() => setChoosingPrinting(true)}>
                 Change printing

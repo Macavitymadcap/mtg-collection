@@ -7,6 +7,7 @@ import { server } from "../../../../test/msw";
 import { renderWithProviders } from "../../../../test/render";
 import { router } from "../../../../test/router";
 import { DeckBuilder } from "./deck-builder";
+import { PHONE, setViewportWidth } from "../../../../test/viewport";
 
 const dogmeat = makeDeckCard(
   { id: 11, card: makeCard({ name: "Dogmeat, Ever Loyal", typeLine: "Legendary Creature — Dog" }) },
@@ -152,5 +153,42 @@ describe("DeckBuilder", () => {
     await user.click(screen.getByRole("button", { name: "Delete" }));
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete" }));
     await vi.waitFor(() => expect(router.push).toHaveBeenCalledWith("/decks"));
+  });
+});
+
+describe("DeckBuilder on a phone", () => {
+  it("splits cards, stats and checks into tabs, and adds cards from a sheet", async () => {
+    setViewportWidth(PHONE);
+    server.use(
+      http.get("*/api/decks/1", () => HttpResponse.json(deck())),
+      collectionPages(3),
+    );
+    const { user } = renderWithProviders(<DeckBuilder id={1} />);
+
+    expect(await screen.findByRole("tab", { name: "Cards (1)", selected: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Commander (1)" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Mana curve" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Stats" }));
+    expect(screen.getByRole("heading", { name: "Mana curve" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: /Check/ }));
+    expect(screen.getByText("A commander deck has exactly 100 cards; this has 1.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Add from your collection" }));
+    expect(await screen.findByRole("heading", { name: "Add from your collection" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Add from your collection" })).toBeInTheDocument();
+  });
+
+  it("says when there's nothing to check", async () => {
+    setViewportWidth(PHONE);
+    server.use(
+      http.get("*/api/decks/1", () => HttpResponse.json(deck({ warnings: [] }))),
+      collectionPages(1),
+    );
+    const { user } = renderWithProviders(<DeckBuilder id={1} />);
+
+    await user.click(await screen.findByRole("tab", { name: /Check/ }));
+    expect(screen.getByText("Nothing to check")).toBeInTheDocument();
   });
 });

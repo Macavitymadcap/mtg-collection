@@ -184,3 +184,28 @@ export function deckStats(cards: DeckCard[]): DeckStats {
   }
   return stats;
 }
+
+/**
+ * Scryfall's art-only crop of a card image. Its URLs differ from the full
+ * image's only in the size segment, e.g. /normal/ → /art_crop/.
+ */
+export function artCropUrl(imageUrl: string | null): string | null {
+  if (!imageUrl) return null;
+  const crop = imageUrl.replace(/\/(small|normal|large|png)\//, "/art_crop/");
+  return crop === imageUrl ? null : crop;
+}
+
+/**
+ * The card that represents a deck: its commander, otherwise the main deck's
+ * highest mana value non-land (ties by name), otherwise any card.
+ */
+export function coverCard(cards: DeckCard[]): DeckCard | undefined {
+  const commander = cards.find((card) => card.board === "commander");
+  if (commander) return commander;
+  const main = cards
+    .filter((card) => card.board === "main" && primaryType(card.entry.card.typeLine) !== "Land")
+    .sort(
+      (a, b) => b.entry.card.manaValue - a.entry.card.manaValue || a.entry.card.name.localeCompare(b.entry.card.name),
+    );
+  return main[0] ?? cards[0];
+}

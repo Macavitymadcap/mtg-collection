@@ -34,6 +34,8 @@ export interface DeckSummary {
   description: string | null;
   /** WUBRG order. */
   colorIdentity: string;
+  /** Art for the deck's tile: an art-crop image of its commander or key card, or null with no cards. */
+  coverArt: string | null;
   cardCount: number;
   warningCount: number;
   createdAt: string;

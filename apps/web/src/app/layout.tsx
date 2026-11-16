@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { JSX, ReactNode } from "react";
 import { Cinzel, Inter } from "next/font/google";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
@@ -10,7 +10,21 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 // Headings only (see theme.ts)
 const cinzel = Cinzel({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-cinzel" });
 
-export const metadata: Metadata = { title: "MTG Collection" };
+export const metadata: Metadata = {
+  title: "MTG Collection",
+  applicationName: "MTG Collection",
+  // Opened from the home screen on iOS: run full screen, titled briefly
+  appleWebApp: { capable: true, title: "MTG", statusBarStyle: "black-translucent" },
+};
+
+// The browser's toolbar colour on phones, matching the app bar in each scheme
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#4A3B8F" },
+    { media: "(prefers-color-scheme: dark)", color: "#241E3D" },
+  ],
+  viewportFit: "cover",
+};
 
 export default function RootLayout({ children }: { children: ReactNode }): JSX.Element {
   return (

@@ -12,7 +12,12 @@ describe("DecksView", () => {
     server.use(
       http.get("*/api/decks", () =>
         HttpResponse.json([
-          makeDeckSummary({ name: "Goblins", cardCount: 100, warningCount: 0 }),
+          makeDeckSummary({
+            name: "Goblins",
+            cardCount: 100,
+            warningCount: 0,
+            coverArt: "https://cards.scryfall.io/art_crop/front/k/r/krenko.jpg",
+          }),
           makeDeckSummary({ name: "Burn", format: "modern", cardCount: 58, warningCount: 2, description: "Fast" }),
         ]),
       ),
@@ -23,6 +28,9 @@ describe("DecksView", () => {
     expect(screen.getByText("58 cards")).toBeInTheDocument();
     expect(screen.getByText("2 warnings")).toBeInTheDocument();
     expect(screen.getByText("Fast")).toBeInTheDocument();
+    // Cover art on the deck that has it (decorative, so no alt text)
+    const art = document.querySelectorAll('img[src*="art_crop"]');
+    expect(art).toHaveLength(1);
     expect(screen.getByRole("link", { name: /Burn/ })).toHaveAttribute("href", expect.stringMatching(/^\/decks\/\d+$/));
   });
 

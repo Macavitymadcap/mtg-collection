@@ -4,16 +4,21 @@ import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
 import { colors as wubrg, finishes, labels, rarities, type Finish, type Rarity } from "@mtg/shared";
 import ClearRounded from "@mui/icons-material/ClearRounded";
+import TuneRounded from "@mui/icons-material/TuneRounded";
+import Badge from "@mui/material/Badge";
 import Button from "@mui/material/Button";
+import Drawer from "@mui/material/Drawer";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { symbolUrl } from "@/components/cards/mana-symbols";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import { useCollectionParams } from "../use-collection-params";
 
 const colorNames: Record<string, string> = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green", C: "Colourless" };
@@ -54,6 +59,18 @@ export function CollectionFilters(): JSX.Element {
     params.finish ||
     params.availableOnly,
   );
+  // Filters other than the always-visible search, for the badge on phones
+  const activeCount = [
+    params.colors,
+    params.type,
+    params.setCode,
+    params.rarity,
+    params.finish,
+    params.availableOnly,
+  ].filter(Boolean).length;
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+
   const clear = (): void => {
     setSearch("");
     setType("");
@@ -68,86 +85,137 @@ export function CollectionFilters(): JSX.Element {
     });
   };
 
+  const searchField = (
+    <TextField
+      label="Search by name"
+      value={search}
+      onChange={(event) => setSearch(event.target.value)}
+      size="small"
+      sx={{ flex: 2, minWidth: 200 }}
+    />
+  );
+
+  const fields = (
+    <>
+      <TextField
+        label="Type"
+        placeholder="e.g. Creature"
+        value={type}
+        onChange={(event) => setType(event.target.value)}
+        size="small"
+        sx={{ flex: 1, minWidth: 140 }}
+      />
+      <TextField
+        label="Set code"
+        value={params.setCode ?? ""}
+        onChange={(event) => setFilters({ setCode: event.target.value.trim() || null })}
+        size="small"
+        sx={{ width: { md: 110 } }}
+        slotProps={{ htmlInput: { style: { textTransform: "uppercase" } } }}
+      />
+      <TextField
+        select
+        label="Rarity"
+        value={params.rarity ?? ""}
+        onChange={(event) => setFilters({ rarity: (event.target.value || null) as Rarity | null })}
+        size="small"
+        sx={{ width: { md: 140 } }}
+      >
+        <MenuItem value="">Any</MenuItem>
+        {rarities.map((rarity) => (
+          <MenuItem key={rarity} value={rarity} sx={{ textTransform: "capitalize" }}>
+            {rarity}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        select
+        label="Finish"
+        value={params.finish ?? ""}
+        onChange={(event) => setFilters({ finish: (event.target.value || null) as Finish | null })}
+        size="small"
+        sx={{ width: { md: 130 } }}
+      >
+        <MenuItem value="">Any</MenuItem>
+        {finishes.map((finish) => (
+          <MenuItem key={finish} value={finish}>
+            {labels.finish[finish]}
+          </MenuItem>
+        ))}
+      </TextField>
+    </>
+  );
+
+  const toggles = (
+    <>
+      <ToggleButtonGroup value={selectedColors} onChange={onColors} size="small" aria-label="Colours">
+        {[...wubrg, "C"].map((color) => (
+          <ToggleButton key={color} value={color} aria-label={colorNames[color]} title={colorNames[color]}>
+            <Image src={symbolUrl(color)} alt="" width={20} height={20} />
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+      <FormControlLabel
+        control={
+          <Switch
+            checked={params.availableOnly}
+            onChange={(event) => setFilters({ availableOnly: event.target.checked || null })}
+          />
+        }
+        label="Free copies only"
+      />
+    </>
+  );
+
+  const clearButton = hasFilters && (
+    <Button startIcon={<ClearRounded />} onClick={clear}>
+      Clear filters
+    </Button>
+  );
+
+  if (isMobile) {
+    // Phones: search stays visible; everything else is in a bottom sheet
+    return (
+      <Stack direction="row" sx={{ gap: 2, mb: 4, alignItems: "center" }}>
+        {searchField}
+        <Badge badgeContent={activeCount} color="primary">
+          <Button variant="outlined" startIcon={<TuneRounded />} onClick={() => setSheetOpen(true)}>
+            Filters
+          </Button>
+        </Badge>
+        <Drawer
+          anchor="bottom"
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          slotProps={{ paper: { sx: { borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: "85vh" } } }}
+        >
+          <Stack sx={{ gap: 3, p: 4 }} role="group" aria-label="Filters">
+            <Typography variant="h6" component="h2">
+              Filters
+            </Typography>
+            {fields}
+            {toggles}
+            <Stack direction="row" sx={{ justifyContent: "space-between" }}>
+              {clearButton || <span />}
+              <Button variant="contained" onClick={() => setSheetOpen(false)}>
+                Done
+              </Button>
+            </Stack>
+          </Stack>
+        </Drawer>
+      </Stack>
+    );
+  }
+
   return (
     <Stack sx={{ gap: 3, mb: 4 }}>
-      <Stack direction={{ xs: "column", md: "row" }} sx={{ gap: 3 }}>
-        <TextField
-          label="Search by name"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          size="small"
-          sx={{ flex: 2, minWidth: 200 }}
-        />
-        <TextField
-          label="Type"
-          placeholder="e.g. Creature"
-          value={type}
-          onChange={(event) => setType(event.target.value)}
-          size="small"
-          sx={{ flex: 1, minWidth: 140 }}
-        />
-        <TextField
-          label="Set code"
-          value={params.setCode ?? ""}
-          onChange={(event) => setFilters({ setCode: event.target.value.trim() || null })}
-          size="small"
-          sx={{ width: { md: 110 } }}
-          slotProps={{ htmlInput: { style: { textTransform: "uppercase" } } }}
-        />
-        <TextField
-          select
-          label="Rarity"
-          value={params.rarity ?? ""}
-          onChange={(event) => setFilters({ rarity: (event.target.value || null) as Rarity | null })}
-          size="small"
-          sx={{ width: { md: 140 } }}
-        >
-          <MenuItem value="">Any</MenuItem>
-          {rarities.map((rarity) => (
-            <MenuItem key={rarity} value={rarity} sx={{ textTransform: "capitalize" }}>
-              {rarity}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          label="Finish"
-          value={params.finish ?? ""}
-          onChange={(event) => setFilters({ finish: (event.target.value || null) as Finish | null })}
-          size="small"
-          sx={{ width: { md: 130 } }}
-        >
-          <MenuItem value="">Any</MenuItem>
-          {finishes.map((finish) => (
-            <MenuItem key={finish} value={finish}>
-              {labels.finish[finish]}
-            </MenuItem>
-          ))}
-        </TextField>
+      <Stack direction="row" sx={{ gap: 3 }}>
+        {searchField}
+        {fields}
       </Stack>
-
       <Stack direction="row" sx={{ gap: 3, alignItems: "center", flexWrap: "wrap" }}>
-        <ToggleButtonGroup value={selectedColors} onChange={onColors} size="small" aria-label="Colours">
-          {[...wubrg, "C"].map((color) => (
-            <ToggleButton key={color} value={color} aria-label={colorNames[color]} title={colorNames[color]}>
-              <Image src={symbolUrl(color)} alt="" width={20} height={20} />
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={params.availableOnly}
-              onChange={(event) => setFilters({ availableOnly: event.target.checked || null })}
-            />
-          }
-          label="Free copies only"
-        />
-        {hasFilters && (
-          <Button startIcon={<ClearRounded />} onClick={clear}>
-            Clear filters
-          </Button>
-        )}
+        {toggles}
+        {clearButton}
       </Stack>
     </Stack>
   );

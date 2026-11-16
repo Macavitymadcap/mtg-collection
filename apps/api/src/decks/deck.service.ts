@@ -1,6 +1,8 @@
 import {
+  artCropUrl,
   boards,
   checkDeck,
+  coverCard,
   deckColorIdentity,
   deckStats,
   type CreateDeckRequest,
@@ -113,6 +115,7 @@ export class DeckService {
       format: deck.format,
       description: deck.description,
       colorIdentity: deckColorIdentity(deck.format, cards),
+      coverArt: artCropUrl(coverCard(cards)?.entry.card.imageNormal ?? null),
       cardCount: deckStats(cards).cardCount,
       warningCount: checkDeck(deck.format, cards).length,
       createdAt: deck.createdAt.toISOString(),
