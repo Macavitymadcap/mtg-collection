@@ -24,6 +24,7 @@ import {
   SuccessResponse,
   Tags,
 } from "tsoa";
+import { redactEntry, visibleSort } from "../auth/visibility.js";
 import { CollectionService } from "./collection.service.js";
 
 @injectable()
@@ -35,7 +36,7 @@ export class CollectionController extends Controller {
   }
 
   /**
-   * Lists owned copies.
+   * Lists owned copies. Prices paid and notes are left out unless signed in, and so is sorting by price.
    * @isInt page
    * @minimum page 1
    * @isInt limit
@@ -45,7 +46,7 @@ export class CollectionController extends Controller {
    */
   @Get()
   @Security("jwt", ["cards:read"])
-  public list(
+  public async list(
     @Query() page = 1,
     @Query() limit = 50,
     @Query() search?: string,
@@ -57,19 +58,21 @@ export class CollectionController extends Controller {
     @Query() availableOnly?: boolean,
     @Query() sort: CollectionSort = "name",
   ): Promise<Page<CollectionEntry>> {
-    return this.service.list({ search, colors, type, setCode, rarity, finish, availableOnly }, sort, { page, limit });
+    const filter = { search, colors, type, setCode, rarity, finish, availableOnly };
+    const found = await this.service.list(filter, visibleSort(sort), { page, limit });
+    return { ...found, results: found.results.map(redactEntry) };
   }
 
   @Get("{id}")
   @Security("jwt", ["cards:read"])
   @Response(404, "Not found")
-  public get(@Path() id: number): Promise<CollectionEntryDetail> {
-    return this.service.get(id);
+  public async get(@Path() id: number): Promise<CollectionEntryDetail> {
+    return redactEntry(await this.service.get(id));
   }
 
   /** Adds copies of a printing. Returns 201 for a new entry, or 200 if they were added to an identical existing one. */
   @Post()
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @SuccessResponse(201, "Created")
   @Response(200, "Added to an existing entry")
   @Response(404, "Unknown Scryfall id")
@@ -81,14 +84,14 @@ export class CollectionController extends Controller {
 
   /** Edits an entry. If it becomes identical to another entry they are merged, and the merged entry (with its id) is returned. */
   @Patch("{id}")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @Response(404, "Not found")
   public update(@Path() id: number, @Body() body: UpdateCollectionEntryRequest): Promise<CollectionEntry> {
     return this.service.update(id, body);
   }
 
   @Delete("{id}")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @SuccessResponse(204, "Deleted")
   @Response(404, "Not found")
   public async remove(@Path() id: number): Promise<void> {

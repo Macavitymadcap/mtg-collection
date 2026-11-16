@@ -87,8 +87,9 @@ describe("POST /api/collection", () => {
     expect(response.body.message).toBe("An entry can hold at most 999 copies");
   });
 
-  it("needs the cards:write scope", async () => {
-    await request(app).post("/api/collection").set(auth("cards:read")).send({}).expect(403);
+  it("needs signing in, or a token with the cards:write scope", async () => {
+    const response = await request(app).post("/api/collection").set(auth("cards:read")).send({}).expect(401);
+    expect(response.body.message).toBe("Sign in to make changes");
   });
 });
 
@@ -130,9 +131,9 @@ describe("sorting the collection", () => {
   const n1a = makeCard({ name: "One A", setCode: "srt", collectorNumber: "1a" });
   catalog.cards.push(n10, n2, n1a);
 
-  const names = async (sort: string) =>
+  const names = async (sort: string, scope?: string) =>
     (
-      (await request(app).get(`/api/collection?sort=${sort}&setCode=srt`).set(auth("cards:read")).expect(200)).body
+      (await request(app).get(`/api/collection?sort=${sort}&setCode=srt`).set(auth(scope)).expect(200)).body
         .results as {
         card: { name: string };
       }[]
@@ -154,6 +155,13 @@ describe("sorting the collection", () => {
 
     expect(await names("price")).toEqual(["One A", "Ten", "Two"]);
     expect(await names("-price")).toEqual(["Ten", "One A", "Two"]);
+  });
+
+  it("sorts visitors' price sorts by name, which would otherwise give prices away", async () => {
+    await add({ scryfallId: n10.id, purchasePrice: 5, currency: "GBP" });
+    await add({ scryfallId: n1a.id, purchasePrice: 1, currency: "GBP" });
+
+    expect(await names("-price", "cards:read")).toEqual(["One A", "Ten"]);
   });
 
   it("rejects unknown sorts", async () => {

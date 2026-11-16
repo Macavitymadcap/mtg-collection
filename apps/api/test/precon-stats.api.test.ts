@@ -171,7 +171,7 @@ describe("GET /api/stats", () => {
       })
       .expect(201);
 
-    const response = await request(app).get("/api/stats").set(auth("cards:read")).expect(200);
+    const response = await request(app).get("/api/stats").set(auth()).expect(200);
 
     expect(response.body).toMatchObject({
       entries: 4,

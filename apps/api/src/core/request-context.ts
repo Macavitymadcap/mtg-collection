@@ -1,12 +1,15 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
 import type { RequestHandler } from "express";
-import type { AuthUser } from "../auth/types.js";
+import type { AuthUser, SessionUser } from "../auth/types.js";
 
 /** Per-request values available anywhere in the call chain. */
 export interface RequestContext {
   correlationId: string;
+  /** Who passed the route's @Security check. */
   user?: AuthUser;
+  /** The signed-in person, if the request has a valid session. */
+  session?: SessionUser;
 }
 
 const storage = new AsyncLocalStorage<RequestContext>();

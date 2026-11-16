@@ -3,6 +3,7 @@ import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
 import { Controller, Get, Route, Security, Tags } from "tsoa";
 import { CollectionRepository } from "../collection/collection.repository.js";
+import { redactStats } from "../auth/visibility.js";
 import { TYPES } from "../types.js";
 
 /** Totals for the dashboard. */
@@ -25,6 +26,6 @@ export class StatsController extends Controller {
       this.entries.list({}, "-createdAt", { page: 1, limit: 12 }),
       this.db("deck").count({ count: "*" }).first(),
     ]);
-    return { ...totals, decks: Number(decks?.count ?? 0), recent: recent.results };
+    return redactStats({ ...totals, decks: Number(decks?.count ?? 0), recent: recent.results });
   }
 }

@@ -7,7 +7,7 @@ import { DataService } from "./data.service.js";
 @injectable()
 @Route("data")
 @Tags("Data")
-@Security("jwt", ["data:admin"])
+@Security("editor", ["data:admin"])
 export class DataController extends Controller {
   constructor(@inject(DataService) private readonly service: DataService) {
     super();

@@ -7,7 +7,13 @@
     "specVersion": 3,
     "basePath": "/api",
     "securityDefinitions": {
-      "jwt": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+      "jwt": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" },
+      "editor": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "mtg.session_token",
+        "description": "A signed-in session (or a bearer token with the scope)"
+      }
     }
   },
   "routes": {

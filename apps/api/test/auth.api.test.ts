@@ -44,10 +44,10 @@ describe("authentication", () => {
 
   it("names the missing scope with 403", async () => {
     const response = await request(app)
-      .get("/api/data/export")
-      .set("Authorization", sign({ scope: "cards:read" }))
+      .get("/api/decks")
+      .set("Authorization", sign({ scope: "cards:write" }))
       .expect(403);
-    expect(response.body.message).toBe("Requires scope: data:admin");
+    expect(response.body.message).toBe("Requires scope: cards:read");
   });
 
   it("treats a token without scopes as having none", async () => {

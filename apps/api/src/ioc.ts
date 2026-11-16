@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { Container } from "inversify";
 import type { Knex } from "knex";
+import { createAuth, type Auth } from "./auth/better-auth.js";
 import type { CardCatalog } from "./catalog/card-catalog.js";
 import { CardRepository } from "./catalog/card.repository.js";
 import { CardService } from "./catalog/card.service.js";
@@ -30,6 +31,7 @@ export const container = new Container({ defaultScope: "Singleton" });
 
 container.bind<Knex>(TYPES.Knex).toConstantValue(createKnex(config));
 container.bind(TransactionManager).toSelf();
+container.bind<Auth>(TYPES.Auth).toConstantValue(createAuth(config));
 container
   .bind<CardCatalog>(TYPES.CardCatalog)
   .toConstantValue(new ScryfallClient({ baseUrl: config.SCRYFALL_BASE_URL, userAgent: config.SCRYFALL_USER_AGENT }));

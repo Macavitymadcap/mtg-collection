@@ -3,4 +3,5 @@ export const TYPES = {
   Knex: Symbol.for("Knex"),
   CardCatalog: Symbol.for("CardCatalog"),
   PreconSource: Symbol.for("PreconSource"),
+  Auth: Symbol.for("Auth"),
 } as const;

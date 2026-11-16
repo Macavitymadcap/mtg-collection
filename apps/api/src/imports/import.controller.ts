@@ -18,7 +18,7 @@ export class ImportController extends Controller {
    * response lists them. Use dryRun to preview.
    */
   @Post("manabox")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @Response(400, "Not a usable ManaBox CSV")
   @Response(422, "Some rows have errors; nothing was imported")
   public async manabox(@Body() body: ManaboxImportRequest, @Query() dryRun = false): Promise<ImportSummary> {
@@ -34,7 +34,7 @@ export class ImportController extends Controller {
    * ManaBox import: all or nothing, 422 with the problems, dryRun to preview.
    */
   @Post("precon")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @Response(404, "No such product")
   @Response(422, "Some cards have problems, or the deck name is taken; nothing was imported")
   public async precon(@Body() body: PreconImportRequest, @Query() dryRun = false): Promise<ImportSummary> {
