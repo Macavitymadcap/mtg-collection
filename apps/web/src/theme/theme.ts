@@ -47,6 +47,8 @@ export const theme = createTheme({
         primary: { main: "#4A3B8F" },
         secondary: { main: "#B5862B" },
         background: { default: "#F4F3F7", paper: "#FFFFFF" },
+        // Darker than MUI's default orange, so white text on it (e.g. chips) is readable
+        warning: { main: "#B45309" },
         mana: manaLight,
       },
     },

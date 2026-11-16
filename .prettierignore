@@ -7,3 +7,7 @@ apps/web/next-env.d.ts
 package-lock.json
 # Written by `next dev`
 apps/web/AGENTS.md
+
+# Playwright
+playwright-report
+test-results

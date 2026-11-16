@@ -7,3 +7,5 @@ coverage
 .env.local
 apps/api/src/generated
 CLAUDE.local.md
+playwright-report
+test-results

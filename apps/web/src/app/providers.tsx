@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX, type ReactNode } from "react";
+import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -14,6 +14,12 @@ import { makeQueryClient } from "@/lib/query-client";
 export function Providers({ children }: { children: ReactNode }): JSX.Element {
   // One client per browser session; useState keeps it across re-renders.
   const [queryClient] = useState(makeQueryClient);
+
+  // Marks the page as interactive. Browser tests wait for this before typing,
+  // since input before hydration is lost when React takes over the fields.
+  useEffect(() => {
+    document.documentElement.dataset.hydrated = "true";
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>

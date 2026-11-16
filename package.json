@@ -22,7 +22,8 @@
     "db:export": "npm run -s db:export -w @mtg/api --",
     "db:import": "npm run -s db:import -w @mtg/api --",
     "test:coverage": "npm run build -w @mtg/shared && npm run test:coverage --workspaces --if-present",
-    "codegen": "npm run -s build -w @mtg/shared && npm run -s routes -w @mtg/api && npm run -s typegen -w @mtg/web"
+    "codegen": "npm run -s build -w @mtg/shared && npm run -s routes -w @mtg/api && npm run -s typegen -w @mtg/web",
+    "test:e2e": "npm run build -w @mtg/shared && npm run test:e2e -w @mtg/web"
   },
   "engines": {
     "node": ">=24"

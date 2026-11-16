@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
@@ -17,6 +17,15 @@ export function CardNameSearch({ value, onChange, autoFocus }: CardNameSearchPro
   const [input, setInput] = useState("");
   const query = useDebouncedValue(input, 250);
   const { data: names = [], isFetching } = useCardNames(query);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus after mount rather than with the autoFocus attribute. On a full page
+  // load the browser applies autofocus before React hydrates, so the
+  // Autocomplete never sees the focus event, thinks it's unfocused, and resets
+  // the text on every keystroke.
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   return (
     <Autocomplete
@@ -29,7 +38,7 @@ export function CardNameSearch({ value, onChange, autoFocus }: CardNameSearchPro
       filterOptions={(options) => options}
       loading={isFetching}
       noOptionsText={input.trim().length < 2 ? "Type at least 2 letters" : "No cards found"}
-      renderInput={(params) => <TextField {...params} label="Card name" autoFocus={autoFocus} />}
+      renderInput={(params) => <TextField {...params} label="Card name" inputRef={inputRef} />}
     />
   );
 }

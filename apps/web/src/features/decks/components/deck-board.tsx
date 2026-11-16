@@ -113,7 +113,7 @@ export function DeckBoard({ board, cards, disabled, onQuantity }: DeckBoardProps
                   <Box sx={{ display: { xs: "none", md: "inline-flex" } }}>
                     <ManaSymbols cost={entry.card.manaCost} />
                   </Box>
-                  <Tooltip title={`You own ${entry.quantity}; your decks use ${entry.allocated}`}>
+                  <Tooltip title={`You own ${entry.quantity}; your decks use ${entry.allocated}`} describeChild>
                     <Typography
                       variant="caption"
                       color={short ? "warning.main" : "text.secondary"}
