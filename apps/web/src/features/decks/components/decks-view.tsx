@@ -17,22 +17,27 @@ import { ColorPips } from "@/components/cards/color-pips";
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
 import { useDecks } from "../queries";
+import { useCanEdit } from "@/features/auth/queries";
 import { NewDeckButton } from "./new-deck-button";
 
 /** Every deck as a card, with format, colours, size and warnings. */
 export function DecksView(): JSX.Element {
   const { data: decks, isPending, isError, error, refetch } = useDecks();
+  const canEdit = useCanEdit();
 
   return (
     <>
-      <PageHeader title="Decks" subtitle="Built from the cards you own" actions={<NewDeckButton />} />
+      <PageHeader title="Decks" subtitle="Built from the cards you own" actions={canEdit && <NewDeckButton />} />
 
       {isPending ? (
         <LoadingState shape="tiles" count={3} />
       ) : isError ? (
         <ErrorState error={error} fallback="Could not load decks." onRetry={() => void refetch()} />
       ) : decks.length === 0 ? (
-        <EmptyState title="No decks yet" message="Use New deck to start building from your collection." />
+        <EmptyState
+          title="No decks yet"
+          message={canEdit ? "Use New deck to start building from your collection." : undefined}
+        />
       ) : (
         <Grid container spacing={4}>
           {decks.map((deck) => (

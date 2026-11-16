@@ -15,8 +15,10 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import { useCanEdit } from "@/features/auth/queries";
+import { UserMenu } from "@/features/auth/user-menu";
 import { ColorModeToggle } from "./color-mode-toggle";
-import { activeHref, mobileNavItems, navItems } from "./nav-items";
+import { activeHref, mobileNavItems as allMobileNavItems, navItems as allNavItems, visibleItems } from "./nav-items";
 
 const DRAWER_WIDTH = 220;
 /** Height of the bottom bar on phones, plus the iPhone home-indicator area. */
@@ -28,6 +30,9 @@ const BOTTOM_NAV_SPACE = "calc(56px + env(safe-area-inset-bottom))";
  */
 export function AppShell({ children }: { children: ReactNode }): JSX.Element {
   const pathname = usePathname();
+  const canEdit = useCanEdit();
+  const navItems = visibleItems(allNavItems, canEdit);
+  const mobileNavItems = visibleItems(allMobileNavItems, canEdit);
   const current = activeHref(pathname, navItems);
   const currentMobile = activeHref(pathname, mobileNavItems);
 
@@ -39,6 +44,7 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
             MTG Collection
           </Typography>
           <ColorModeToggle />
+          <UserMenu />
         </Toolbar>
       </AppBar>
 

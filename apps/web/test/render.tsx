@@ -5,6 +5,7 @@ import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter, type OnUrlUpdateFunction } from "nuqs/adapters/testing";
 import { SnackbarProvider } from "@/components/feedback/snackbar-provider";
+import { sessionKey, type Session } from "@/features/auth/queries";
 import { theme } from "@/theme/theme";
 
 interface Options {
@@ -12,13 +13,20 @@ interface Options {
   searchParams?: string;
   /** Called when the component changes the URL's query string. */
   onUrlUpdate?: OnUrlUpdateFunction;
+  /** Who is signed in: someone who can edit unless given null (a visitor). */
+  session?: Session;
 }
 
+/** The signed-in person most tests run as. */
+export const signedIn: Session = { user: { name: "Tester", image: null, githubLogin: "tester" } };
+
 /** Renders with the app's providers: theme, a fresh query client, URL state and the snackbar. */
-export function renderWithProviders(ui: ReactElement, { searchParams, onUrlUpdate }: Options = {}) {
+export function renderWithProviders(ui: ReactElement, { searchParams, onUrlUpdate, session = signedIn }: Options = {}) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
   });
+  // Known up front, as if already fetched, so tests don't each need a session handler
+  queryClient.setQueryData(sessionKey, session);
   const Wrapper = ({ children }: { children: ReactNode }) => (
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={queryClient}>

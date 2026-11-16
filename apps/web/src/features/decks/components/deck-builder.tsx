@@ -32,6 +32,7 @@ import { ColorPips } from "@/components/cards/color-pips";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
+import { useCanEdit } from "@/features/auth/queries";
 import { errorMessage } from "@/lib/errors";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { useDeck, useDeleteDeck, useSetDeckCard, useUpdateDeck } from "../queries";
@@ -81,6 +82,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
   const { data: deck, isPending, isError, error } = useDeck(id);
   const setCard = useSetDeckCard(id);
   const update = useUpdateDeck(id);
+  const canEdit = useCanEdit();
   const remove = useDeleteDeck();
   const [editing, setEditing] = useState(false);
   const isMobile = useIsMobile();
@@ -157,7 +159,13 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
     usedBoards.length === 0 ? (
       <EmptyState
         title="No cards yet"
-        message={isMobile ? "Use + to add cards from your collection." : "Search your collection above to add some."}
+        message={
+          !canEdit
+            ? undefined
+            : isMobile
+              ? "Use + to add cards from your collection."
+              : "Search your collection above to add some."
+        }
       />
     ) : (
       <>
@@ -175,6 +183,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
             board={board}
             cards={deck.cards.filter((card) => card.board === board)}
             disabled={setCard.isPending}
+            readOnly={!canEdit}
             onQuantity={changeQuantity}
             collapsed={collapsed}
             animate={sectionsRestored}
@@ -196,12 +205,16 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         actions={
           <>
             {back}
-            <Button startIcon={<EditRounded />} onClick={() => setEditing(true)}>
-              Edit
-            </Button>
-            <Button color="error" startIcon={<DeleteOutlineRounded />} onClick={() => setConfirmingDelete(true)}>
-              Delete
-            </Button>
+            {canEdit && (
+              <>
+                <Button startIcon={<EditRounded />} onClick={() => setEditing(true)}>
+                  Edit
+                </Button>
+                <Button color="error" startIcon={<DeleteOutlineRounded />} onClick={() => setConfirmingDelete(true)}>
+                  Delete
+                </Button>
+              </>
+            )}
           </>
         }
       />
@@ -232,14 +245,16 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
             (warnings || <EmptyState title="Nothing to check" message="The deck follows its format's rules." />)}
 
           {/* Above the bottom navigation bar */}
-          <Fab
-            color="primary"
-            aria-label="Add from your collection"
-            onClick={() => setAdding(true)}
-            sx={{ position: "fixed", right: 16, bottom: "calc(56px + env(safe-area-inset-bottom) + 16px)" }}
-          >
-            <AddRounded />
-          </Fab>
+          {canEdit && (
+            <Fab
+              color="primary"
+              aria-label="Add from your collection"
+              onClick={() => setAdding(true)}
+              sx={{ position: "fixed", right: 16, bottom: "calc(56px + env(safe-area-inset-bottom) + 16px)" }}
+            >
+              <AddRounded />
+            </Fab>
+          )}
           <Drawer
             anchor="bottom"
             open={adding}
@@ -256,7 +271,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         <Grid container spacing={6}>
           <Grid size={{ md: 8 }}>
             <Stack sx={{ gap: 4 }}>
-              <Paper sx={{ p: 4 }}>{addPanel}</Paper>
+              {canEdit && <Paper sx={{ p: 4 }}>{addPanel}</Paper>}
               {warnings}
               {boardList}
             </Stack>

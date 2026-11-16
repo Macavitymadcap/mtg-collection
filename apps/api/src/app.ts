@@ -5,6 +5,7 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import { AUTH_BASE_PATH, type Auth } from "./auth/better-auth.js";
 import { loadSession } from "./auth/session.js";
+import { signInForTests } from "./auth/test-sign-in.js";
 import { config } from "./config.js";
 import { errorHandler, notFoundHandler } from "./core/error-handler.js";
 import { logger } from "./core/logger.js";
@@ -34,6 +35,10 @@ export function createApp(): Express {
 
   if (config.NODE_ENV !== "production") {
     app.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
+  }
+
+  if (config.NODE_ENV === "test") {
+    app.post("/api/test/sign-in", signInForTests(auth));
   }
 
   RegisterRoutes(app);

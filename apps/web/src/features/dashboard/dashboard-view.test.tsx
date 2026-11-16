@@ -42,6 +42,30 @@ describe("DashboardView", () => {
     expect(await screen.findByText("API and database OK")).toBeInTheDocument();
   });
 
+  it("hides spending from visitors", async () => {
+    server.use(
+      http.get("*/api/stats", () => HttpResponse.json(stats({ spent: [] }))),
+      http.get("*/api/decks", () => HttpResponse.json([])),
+      http.get("*/api/health", () => HttpResponse.json({ status: "ok", database: "ok" })),
+    );
+    renderWithProviders(<DashboardView />, { session: null });
+
+    expect(await screen.findByText("414")).toBeInTheDocument();
+    expect(screen.queryByText("Spent (where recorded)")).not.toBeInTheDocument();
+  });
+
+  it("tells visitors an empty collection is empty, without ways to add cards", async () => {
+    server.use(
+      http.get("*/api/stats", () => HttpResponse.json(stats({ entries: 0, copies: 0, recent: [], spent: [] }))),
+      http.get("*/api/decks", () => HttpResponse.json([])),
+      http.get("*/api/health", () => HttpResponse.json({ status: "ok", database: "ok" })),
+    );
+    renderWithProviders(<DashboardView />, { session: null });
+
+    expect(await screen.findByText("No cards have been added yet.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Add cards" })).not.toBeInTheDocument();
+  });
+
   it("offers ways to add cards when the collection is empty", async () => {
     server.use(
       http.get("*/api/stats", () => HttpResponse.json(stats({ entries: 0, copies: 0, recent: [], spent: [] }))),

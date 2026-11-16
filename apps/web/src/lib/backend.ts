@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { env } from "@/lib/env";
 
-const SCOPES = "cards:read cards:write data:admin";
+/**
+ * The BFF's own token only reads. Changes need the person's session, which
+ * comes from their cookie, so signed-out visitors can only look.
+ */
+const SCOPES = "cards:read";
 
-/** A short-lived token the BFF uses to call the API on the user's behalf. */
+/** A short-lived token the BFF uses to call the API. */
 function serviceToken(): string {
   return jwt.sign({ scope: SCOPES }, env.API_JWT_SECRET, { subject: "web-bff", expiresIn: "5m" });
 }
@@ -23,6 +27,11 @@ interface ForwardOptions {
  * the API's status and JSON body back. The API's errors are already safe to
  * show (it hides 5xx details), so they're returned as they are.
  */
+function cookieHeader(request: Request): { Cookie?: string } {
+  const cookie = request.headers.get("cookie");
+  return cookie ? { Cookie: cookie } : {};
+}
+
 export async function forward(request: Request, { path, bodySchema }: ForwardOptions): Promise<NextResponse> {
   const url = new URL(env.API_BASE_URL + path);
   url.search = new URL(request.url).search;
@@ -49,6 +58,8 @@ export async function forward(request: Request, { path, bodySchema }: ForwardOpt
         Authorization: `Bearer ${serviceToken()}`,
         "Content-Type": "application/json",
         "x-correlation-id": request.headers.get("x-correlation-id") ?? crypto.randomUUID(),
+        // The session cookie: the API decides who is signed in
+        ...cookieHeader(request),
       },
       body,
       signal: AbortSignal.timeout(15_000),

@@ -20,6 +20,7 @@ import Typography from "@mui/material/Typography";
 import { CardImage } from "@/components/cards/card-image";
 import { ColorPips } from "@/components/cards/color-pips";
 import { PageHeader } from "@/components/layout/page-header";
+import { useCanEdit } from "@/features/auth/queries";
 import { useDecks } from "@/features/decks/queries";
 import { HealthChip } from "@/features/health/health-chip";
 import { errorMessage } from "@/lib/errors";
@@ -43,6 +44,7 @@ function Stat({ label, value }: { label: string; value: string | number }): JSX.
 export function DashboardView(): JSX.Element {
   const stats = useStats();
   const decks = useDecks();
+  const canEdit = useCanEdit();
 
   const header = <PageHeader title="Dashboard" subtitle="Your collection at a glance" actions={<HealthChip />} />;
 
@@ -72,6 +74,7 @@ export function DashboardView(): JSX.Element {
 
   const { data } = stats;
   const number = (value: number): string => value.toLocaleString("en-GB");
+  const tile = { xs: 6, md: canEdit ? 3 : 4 };
 
   if (data.entries === 0) {
     return (
@@ -81,17 +84,23 @@ export function DashboardView(): JSX.Element {
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
             Your collection is empty
           </Typography>
-          <Typography color="text.secondary" sx={{ mb: 4 }}>
-            Add cards one at a time, or import a ManaBox export or a preconstructed deck.
-          </Typography>
-          <Stack direction="row" sx={{ gap: 2, justifyContent: "center" }}>
-            <Button component={Link} href="/collection/add" variant="contained" startIcon={<AddRounded />}>
-              Add cards
-            </Button>
-            <Button component={Link} href="/collection/import" startIcon={<UploadFileRounded />}>
-              Import
-            </Button>
-          </Stack>
+          {canEdit ? (
+            <>
+              <Typography color="text.secondary" sx={{ mb: 4 }}>
+                Add cards one at a time, or import a ManaBox export or a preconstructed deck.
+              </Typography>
+              <Stack direction="row" sx={{ gap: 2, justifyContent: "center" }}>
+                <Button component={Link} href="/collection/add" variant="contained" startIcon={<AddRounded />}>
+                  Add cards
+                </Button>
+                <Button component={Link} href="/collection/import" startIcon={<UploadFileRounded />}>
+                  Import
+                </Button>
+              </Stack>
+            </>
+          ) : (
+            <Typography color="text.secondary">No cards have been added yet.</Typography>
+          )}
         </Paper>
       </>
     );
@@ -102,24 +111,27 @@ export function DashboardView(): JSX.Element {
       {header}
 
       <Grid container spacing={4} sx={{ mb: 6 }}>
-        <Grid size={{ xs: 6, md: 3 }}>
+        <Grid size={tile}>
           <Stat label="Cards owned" value={number(data.copies)} />
         </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
+        <Grid size={tile}>
           <Stat label="Different cards" value={number(data.uniqueCards)} />
         </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
+        <Grid size={{ ...tile, xs: canEdit ? 6 : 12 }}>
           <Stat
             label="In decks"
             value={`${number(data.allocated)} in ${number(data.decks)} ${data.decks === 1 ? "deck" : "decks"}`}
           />
         </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <Stat
-            label="Spent (where recorded)"
-            value={data.spent.length ? data.spent.map((s) => formatPrice(s.total, s.currency)).join(" + ") : "—"}
-          />
-        </Grid>
+        {/* What was paid is only sent to people who are signed in */}
+        {canEdit && (
+          <Grid size={tile}>
+            <Stat
+              label="Spent (where recorded)"
+              value={data.spent.length ? data.spent.map((s) => formatPrice(s.total, s.currency)).join(" + ") : "—"}
+            />
+          </Grid>
+        )}
       </Grid>
 
       <Grid container spacing={6}>

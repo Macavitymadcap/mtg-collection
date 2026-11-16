@@ -34,6 +34,15 @@ describe("DecksView", () => {
     expect(screen.getByRole("link", { name: /Burn/ })).toHaveAttribute("href", expect.stringMatching(/^\/decks\/\d+$/));
   });
 
+  it("has no New deck button for visitors", async () => {
+    server.use(http.get("*/api/decks", () => HttpResponse.json([])));
+    renderWithProviders(<DecksView />, { session: null });
+
+    expect(await screen.findByText(/No decks yet/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "New deck" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Use New deck/)).not.toBeInTheDocument();
+  });
+
   it("says so when there are no decks", async () => {
     server.use(http.get("*/api/decks", () => HttpResponse.json([])));
     renderWithProviders(<DecksView />);

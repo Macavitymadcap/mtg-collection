@@ -164,3 +164,20 @@ describe("signing in", () => {
     expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 0 });
   });
 });
+
+describe("POST /api/test/sign-in (browser tests only)", () => {
+  it("signs in as the test login and returns the session cookies, the second time too", async () => {
+    await request(app).post("/api/test/sign-in?origin=http://localhost:3001").set(auth()).expect(200);
+    const response = await request(app).post("/api/test/sign-in?origin=http://localhost:3001").set(auth()).expect(200);
+
+    const cookies = response.body as { name: string; value: string; domain: string }[];
+    expect(cookies).toContainEqual(expect.objectContaining({ name: "mtg.session_token", domain: "localhost" }));
+    const cookie = cookies.map(({ name, value }) => `${name}=${value}`).join("; ");
+    await addShock({ ...bff, Cookie: cookie }).expect(201);
+    expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 1 });
+  });
+
+  it("needs the data:admin scope", async () => {
+    await request(app).post("/api/test/sign-in").set(bff).expect(403);
+  });
+});

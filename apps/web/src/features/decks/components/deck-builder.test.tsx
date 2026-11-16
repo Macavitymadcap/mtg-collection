@@ -66,6 +66,19 @@ describe("DeckBuilder", () => {
     expect(screen.getByRole("heading", { name: "Mana curve" })).toBeInTheDocument();
   });
 
+  it("shows visitors the deck without ways to change it", async () => {
+    server.use(http.get("*/api/decks/1", () => HttpResponse.json(deck())));
+    renderWithProviders(<DeckBuilder id={1} />, { session: null });
+
+    expect(await screen.findByRole("heading", { name: "Commander (1)" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Mana curve" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /One more/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /One fewer/ })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Add from your collection")).not.toBeInTheDocument();
+  });
+
   it("adds a card from the collection to the chosen board", async () => {
     let body: unknown;
     server.use(

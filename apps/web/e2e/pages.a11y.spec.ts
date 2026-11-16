@@ -37,13 +37,30 @@ for (const colorScheme of ["light", "dark"] as const) {
         await open(page);
         // Let data load and skeletons settle before scanning
         await page.waitForLoadState("networkidle");
-        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
-        // Name the offending elements, so a failure says what to fix
-        const violations = results.violations.map(
-          (v) => `${v.id}: ${v.help} → ${v.nodes.map((node) => node.target.join(" ")).join(" | ")}`,
-        );
-        expect(violations).toEqual([]);
+        expect(await violations(page)).toEqual([]);
       });
     }
   });
 }
+
+/** The page's WCAG 2.1 A and AA violations, naming the offending elements so a failure says what to fix. */
+async function violations(page: Page): Promise<string[]> {
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  return results.violations.map(
+    (v) => `${v.id}: ${v.help} → ${v.nodes.map((node) => node.target.join(" ")).join(" | ")}`,
+  );
+}
+
+// What visitors see differs: read-only pages and the sign-in prompt
+test.describe("signed out", () => {
+  test.use({ signedIn: false });
+  const visitorPages = pages.filter(([name]) => ["collection", "add cards", "deck builder", "card"].includes(name));
+
+  for (const [name, open] of visitorPages) {
+    test(`${name} has no accessibility violations`, async ({ page }) => {
+      await open(page);
+      await page.waitForLoadState("networkidle");
+      expect(await violations(page)).toEqual([]);
+    });
+  }
+});

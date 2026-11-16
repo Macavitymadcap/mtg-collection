@@ -8,6 +8,7 @@ import Stack from "@mui/material/Stack";
 import { DataGrid, type GridColDef, type GridRowParams, type GridSortModel } from "@mui/x-data-grid";
 import { CardPreview } from "@/components/cards/card-preview";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
+import { useCanEdit } from "@/features/auth/queries";
 import { formatPrice, printingLabel } from "@/lib/format";
 import { useCollectionParams } from "../use-collection-params";
 
@@ -113,11 +114,14 @@ interface CollectionTableProps {
 export function CollectionTable({ data, loading }: CollectionTableProps): JSX.Element {
   const router = useRouter();
   const { params, setParams } = useCollectionParams();
+  // Prices paid are only sent to people who are signed in
+  const canEdit = useCanEdit();
 
   return (
     <DataGrid
       rows={data?.results ?? []}
       columns={columns}
+      columnVisibilityModel={{ purchasePrice: canEdit }}
       rowCount={data?.count ?? 0}
       loading={loading}
       paginationMode="server"

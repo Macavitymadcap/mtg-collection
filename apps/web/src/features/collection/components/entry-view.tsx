@@ -3,13 +3,14 @@
 import { useState, type JSX } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { labels, type Card, type UpdateCollectionEntryRequest } from "@mtg/shared";
+import { labels, type Card, type CollectionEntry, type UpdateCollectionEntryRequest } from "@mtg/shared";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
 import SwapHorizRounded from "@mui/icons-material/SwapHorizRounded";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -27,19 +28,40 @@ import { RulesText } from "@/components/cards/rules-text";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
 import { ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
+import { useCanEdit } from "@/features/auth/queries";
 import { PrintingPicker } from "@/features/catalog/printing-picker";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, printingLabel } from "@/lib/format";
 import { useCollectionEntry, useDeleteEntry, useUpdateEntry } from "../queries";
 import { EntryForm, entryToForm } from "./entry-form";
 
-/** One collection entry: the card, an edit form, where it's used, and delete. */
+const FLAGS = ["signed", "altered", "misprint", "proxy"] as const;
+
+/** The copies, for visitors, who can't edit them. */
+function CopiesSummary({ entry }: { entry: CollectionEntry }): JSX.Element {
+  return (
+    <Paper sx={{ p: 4 }}>
+      <Typography>
+        {entry.quantity} × {labels.finish[entry.finish].toLowerCase()},{" "}
+        {labels.condition[entry.condition].toLowerCase()}, language {entry.language}
+      </Typography>
+      <Stack direction="row" sx={{ gap: 1, mt: 2, flexWrap: "wrap" }}>
+        {FLAGS.filter((flag) => entry[flag]).map((flag) => (
+          <Chip key={flag} label={flag} size="small" variant="outlined" />
+        ))}
+      </Stack>
+    </Paper>
+  );
+}
+
+/** One collection entry: the card, an edit form (when signed in), where it's used, and delete. */
 export function EntryView({ id }: { id: number }): JSX.Element {
   const router = useRouter();
   const showMessage = useSnackbar();
   const { data: entry, isPending, isError, error } = useCollectionEntry(id);
   const update = useUpdateEntry(id);
   const remove = useDeleteEntry();
+  const canEdit = useCanEdit();
   const [choosingPrinting, setChoosingPrinting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -105,9 +127,11 @@ export function EntryView({ id }: { id: number }): JSX.Element {
               <CardImage card={card} size="normal" priority />
             </Box>
             <Stack direction="row" sx={{ gap: 2, flexWrap: "wrap" }}>
-              <Button startIcon={<SwapHorizRounded />} onClick={() => setChoosingPrinting(true)}>
-                Change printing
-              </Button>
+              {canEdit && (
+                <Button startIcon={<SwapHorizRounded />} onClick={() => setChoosingPrinting(true)}>
+                  Change printing
+                </Button>
+              )}
               <Button href={card.scryfallUri} target="_blank" rel="noreferrer" endIcon={<OpenInNewRounded />}>
                 Scryfall
               </Button>
@@ -139,20 +163,28 @@ export function EntryView({ id }: { id: number }): JSX.Element {
               <Typography variant="h6" component="h2" sx={{ mb: 3 }}>
                 Your copies
               </Typography>
-              <EntryForm
-                // Reset the form when the saved entry changes
-                key={entry.updatedAt}
-                defaultValues={entryToForm(entry)}
-                submitLabel="Save changes"
-                onSubmit={(fields) => save(fields)}
-                pending={update.isPending && !choosingPrinting}
-                error={update.isError ? errorMessage(update.error) : null}
-                actions={
-                  <Button color="error" startIcon={<DeleteOutlineRounded />} onClick={() => setConfirmingDelete(true)}>
-                    Delete
-                  </Button>
-                }
-              />
+              {canEdit ? (
+                <EntryForm
+                  // Reset the form when the saved entry changes
+                  key={entry.updatedAt}
+                  defaultValues={entryToForm(entry)}
+                  submitLabel="Save changes"
+                  onSubmit={(fields) => save(fields)}
+                  pending={update.isPending && !choosingPrinting}
+                  error={update.isError ? errorMessage(update.error) : null}
+                  actions={
+                    <Button
+                      color="error"
+                      startIcon={<DeleteOutlineRounded />}
+                      onClick={() => setConfirmingDelete(true)}
+                    >
+                      Delete
+                    </Button>
+                  }
+                />
+              ) : (
+                <CopiesSummary entry={entry} />
+              )}
             </Box>
 
             <Box>

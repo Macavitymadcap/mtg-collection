@@ -5,6 +5,7 @@ import type { UrlUpdateEvent } from "nuqs/adapters/testing";
 import { describe, expect, it } from "vitest";
 import { makeCard, makeEntry } from "../../../../test/fixtures";
 import { server } from "../../../../test/msw";
+import type { Session } from "@/features/auth/queries";
 import { renderWithProviders } from "../../../../test/render";
 import { router } from "../../../../test/router";
 import { CollectionView } from "./collection-view";
@@ -44,10 +45,11 @@ function fakeCollection(results: CollectionEntry[] = [bolt, forest], count = res
   return queries;
 }
 
-function setup(searchParams = "") {
+function setup(searchParams = "", session?: Session) {
   const updates: string[] = [];
   const view = renderWithProviders(<CollectionView />, {
     searchParams,
+    session,
     onUrlUpdate: (event: UrlUpdateEvent) => updates.push(event.searchParams.toString()),
   });
   return { ...view, updates };
@@ -139,6 +141,28 @@ describe("CollectionView", () => {
     setup();
     expect(screen.getByRole("link", { name: "Add cards" })).toHaveAttribute("href", "/collection/add");
     expect(screen.getByRole("link", { name: "Import" })).toHaveAttribute("href", "/collection/import");
+  });
+});
+
+describe("CollectionView for visitors", () => {
+  it("has no add or import links, and no price column", async () => {
+    fakeCollection();
+    setup("", null);
+
+    expect(await screen.findByRole("row", { name: /Lightning Bolt/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Add cards" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Import" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: /Paid/ })).not.toBeInTheDocument();
+  });
+
+  it("offers no price sorts, and shows name order for a price sort in the URL", async () => {
+    fakeCollection();
+    const { user } = setup("?view=grid&sort=-price", null);
+
+    const sortBy = await screen.findByRole("combobox", { name: "Sort by" });
+    expect(sortBy).toHaveTextContent("Name (A–Z)");
+    await user.click(sortBy);
+    expect(screen.queryByRole("option", { name: /Price paid/ })).not.toBeInTheDocument();
   });
 });
 
