@@ -18,11 +18,10 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
-import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { ColorPips } from "@/components/cards/color-pips";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
+import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
 import { errorMessage } from "@/lib/errors";
 import { useDeck, useDeleteDeck, useSetDeckCard, useUpdateDeck } from "../queries";
@@ -48,12 +47,12 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
     </Button>
   );
 
-  if (isPending) return <Skeleton variant="rounded" height={480} />;
+  if (isPending) return <LoadingState />;
   if (isError) {
     return (
       <>
         <PageHeader title="Deck not found" actions={back} />
-        <Alert severity="error">{errorMessage(error, "Could not load this deck.")}</Alert>
+        <ErrorState error={error} fallback="Could not load this deck." />
       </>
     );
   }
@@ -128,7 +127,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
             )}
 
             {usedBoards.length === 0 ? (
-              <Typography color="text.secondary">No cards yet. Search your collection above to add some.</Typography>
+              <EmptyState title="No cards yet" message="Search your collection above to add some." />
             ) : (
               usedBoards.map((board) => (
                 <DeckBoard
