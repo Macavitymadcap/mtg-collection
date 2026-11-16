@@ -14,6 +14,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import MenuRounded from "@mui/icons-material/MenuRounded";
+import { ColorModeToggle } from "./color-mode-toggle";
 import { navItems } from "./nav-items";
 
 const DRAWER_WIDTH = 220;
@@ -60,9 +61,10 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
           >
             <MenuRounded />
           </IconButton>
-          <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" component="span" sx={{ fontWeight: 700, flexGrow: 1 }}>
             MTG Collection
           </Typography>
+          <ColorModeToggle />
         </Toolbar>
       </AppBar>
 

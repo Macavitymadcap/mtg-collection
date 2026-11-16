@@ -55,7 +55,9 @@ describe("DecksView", () => {
     );
     const { user } = renderWithProviders(<DecksView />);
 
-    await user.click(await screen.findByRole("button", { name: "New deck" }));
+    // Wait for the list to load, so the click isn't racing the page
+    await screen.findByText("No decks yet");
+    await user.click(screen.getByRole("button", { name: "New deck" }));
     await user.type(screen.getByLabelText(/Name/), "Elves");
     await user.click(screen.getByRole("button", { name: "Create" }));
 
