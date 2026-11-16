@@ -14,7 +14,8 @@ import { useCollectionParams } from "../use-collection-params";
 /** Grid columns that the API can sort by, and the sort value for each. */
 const sortable: Record<string, { asc: CollectionSort; desc?: CollectionSort }> = {
   name: { asc: "name", desc: "-name" },
-  printing: { asc: "setCode" },
+  printing: { asc: "setCode", desc: "-setCode" },
+  purchasePrice: { asc: "price", desc: "-price" },
   manaValue: { asc: "manaValue", desc: "-manaValue" },
   createdAt: { asc: "createdAt", desc: "-createdAt" },
 };
@@ -93,7 +94,6 @@ const columns: GridColDef<CollectionEntry>[] = [
     headerName: "Paid",
     type: "number",
     width: 90,
-    sortable: false,
     valueFormatter: (_value, row) => formatPrice(row.purchasePrice, row.currency),
   },
   {

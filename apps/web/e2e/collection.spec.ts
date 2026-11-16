@@ -42,3 +42,17 @@ test("filters the collection by colour, keeping the filter in the URL", async ({
   await expect(page.getByText("1 entry")).toBeVisible();
   await expect(page.getByRole("row", { name: /Llanowar Elves/ })).toBeVisible();
 });
+
+test("sorts by printing, both ways, from the column header", async ({ page }) => {
+  await page.goto("/collection");
+  const names = page.locator('[role="row"] [data-field="name"]').filter({ hasNotText: "Name" });
+
+  await page.getByRole("columnheader", { name: /Printing/ }).click();
+  await expect(page).toHaveURL(/sort=setCode/);
+  // a25, m10, m13, m19
+  await expect(names).toHaveText(["Lightning Bolt", "Mountain", "Krenko, Mob Boss", "Llanowar Elves"]);
+
+  await page.getByRole("columnheader", { name: /Printing/ }).click();
+  await expect(page).toHaveURL(/sort=-setCode/);
+  await expect(names).toHaveText(["Llanowar Elves", "Krenko, Mob Boss", "Mountain", "Lightning Bolt"]);
+});

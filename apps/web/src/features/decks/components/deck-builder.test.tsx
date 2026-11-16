@@ -129,6 +129,28 @@ describe("DeckBuilder", () => {
     expect(body).toEqual({ collectionEntryId: 11, board: "commander", quantity: 0 });
   });
 
+  it("collapses and expands every section, remembering the choice for the deck", async () => {
+    server.use(
+      http.get("*/api/decks/1", () => HttpResponse.json(deck())),
+      collectionPages(1),
+    );
+    const { user, unmount } = renderWithProviders(<DeckBuilder id={1} />);
+
+    const commander = await screen.findByRole("button", { name: "Commander (1)" });
+    await user.click(screen.getByRole("button", { name: "Collapse all" }));
+    expect(commander).toHaveAttribute("aria-expanded", "false");
+    expect(localStorage.getItem("deck-sections-collapsed:1")).toBe(JSON.stringify(["commander"]));
+
+    // Remembered on the next visit
+    unmount();
+    renderWithProviders(<DeckBuilder id={1} />);
+    expect(await screen.findByRole("button", { name: "Commander (1)" })).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(screen.getByRole("button", { name: "Expand all" }));
+    expect(screen.getByRole("button", { name: "Commander (1)" })).toHaveAttribute("aria-expanded", "true");
+    localStorage.clear();
+  });
+
   it("renames, and deletes after confirming", async () => {
     let patched: unknown;
     server.use(

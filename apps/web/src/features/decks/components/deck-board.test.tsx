@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { makeCard, makeDeckCard } from "../../../../test/fixtures";
 import { renderWithProviders } from "../../../../test/render";
@@ -51,10 +51,41 @@ describe("DeckBoard", () => {
       "href",
       `/collection/${bolt.entry.id}`,
     );
-    for (const button of within(screen.getByRole("heading", { name: /Sideboard/ }).parentElement!).getAllByRole(
-      "button",
-    )) {
-      expect(button).toBeDisabled();
-    }
+    expect(screen.getByRole("button", { name: "One more Lightning Bolt" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "One fewer Lightning Bolt" })).toBeDisabled();
+  });
+
+  it("collapses the board and, on the main deck, each type group", async () => {
+    const { user } = renderWithProviders(
+      <DeckBoard board="main" cards={[bolt, goblin]} disabled={false} onQuantity={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Creature (1)" }));
+    expect(screen.queryByRole("link", { name: "Goblin Guide" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Lightning Bolt" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Main deck (3)" }));
+    expect(screen.getByRole("button", { name: "Main deck (3)" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "Lightning Bolt" })).not.toBeInTheDocument();
+  });
+
+  it("orders type groups as decklists usually are", () => {
+    const enchantment = makeDeckCard({ card: makeCard({ name: "Aura", typeLine: "Enchantment — Aura" }) });
+    const other = makeDeckCard({ card: makeCard({ name: "Odd", typeLine: "Kindred" }) });
+    renderWithProviders(
+      <DeckBoard
+        board="main"
+        cards={[enchantment, mountain, bolt, other, goblin]}
+        disabled={false}
+        onQuantity={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Creature (1)",
+      "Instant (2)",
+      "Enchantment (1)",
+      "Land (12)",
+      "Other (1)",
+    ]);
   });
 });
