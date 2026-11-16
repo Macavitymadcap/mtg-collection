@@ -84,16 +84,29 @@ export function DeckBoard({ board, cards, disabled, onQuantity }: DeckBoardProps
                       href={`/collection/${entry.id}`}
                       underline="hover"
                       color="inherit"
-                      noWrap
-                      sx={{ display: "block" }}
+                      // Phones: let long names wrap rather than cutting them off
+                      sx={{
+                        display: "block",
+                        whiteSpace: { md: "nowrap" },
+                        overflow: { md: "hidden" },
+                        textOverflow: { md: "ellipsis" },
+                      }}
                     >
                       {entry.card.name}
                     </Link>
-                    <Typography variant="caption" color="text.secondary">
-                      {printingLabel(entry.card)} · {entry.condition}
-                    </Typography>
+                    <Stack direction="row" sx={{ gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {printingLabel(entry.card)} · {entry.condition}
+                      </Typography>
+                      {/* Under the name on phones, where the row is too narrow for its own column */}
+                      <Box sx={{ display: { xs: "inline-flex", md: "none" } }}>
+                        <ManaSymbols cost={entry.card.manaCost} size={14} />
+                      </Box>
+                    </Stack>
                   </Box>
-                  <ManaSymbols cost={entry.card.manaCost} />
+                  <Box sx={{ display: { xs: "none", md: "inline-flex" } }}>
+                    <ManaSymbols cost={entry.card.manaCost} />
+                  </Box>
                   <Tooltip title={`You own ${entry.quantity}; your decks use ${entry.allocated}`}>
                     <Typography
                       variant="caption"

@@ -17,13 +17,17 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.E
       sx={{ justifyContent: "space-between", alignItems: { sm: "center" }, gap: 4, mb: 6 }}
     >
       <Stack sx={{ gap: 1 }}>
-        <Typography variant="h4" component="h1">
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{ fontSize: { xs: "1.75rem", sm: "2.125rem" }, overflowWrap: "anywhere" }}
+        >
           {title}
         </Typography>
         {subtitle && <Typography color="text.secondary">{subtitle}</Typography>}
       </Stack>
       {actions && (
-        <Stack direction="row" sx={{ gap: 2 }}>
+        <Stack direction="row" sx={{ gap: 2, flexWrap: "wrap" }}>
           {actions}
         </Stack>
       )}

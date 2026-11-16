@@ -8,6 +8,7 @@ import { server } from "../../../../test/msw";
 import { renderWithProviders } from "../../../../test/render";
 import { router } from "../../../../test/router";
 import { CollectionView } from "./collection-view";
+import { PHONE, setViewportWidth } from "../../../../test/viewport";
 
 const bolt = makeEntry({
   id: 1,
@@ -115,5 +116,21 @@ describe("CollectionView", () => {
     setup();
     expect(screen.getByRole("link", { name: "Add cards" })).toHaveAttribute("href", "/collection/add");
     expect(screen.getByRole("link", { name: "Import" })).toHaveAttribute("href", "/collection/import");
+  });
+});
+
+describe("CollectionView on a phone", () => {
+  it("shows a compact list instead of the table", async () => {
+    setViewportWidth(PHONE);
+    fakeCollection();
+    setup();
+
+    const bolt = await screen.findByRole("link", { name: /Lightning Bolt/ });
+    expect(bolt).toHaveAttribute("href", "/collection/1");
+    expect(bolt).toHaveTextContent("M10 #146 · NM");
+    expect(bolt).toHaveTextContent("×4");
+    expect(bolt).toHaveTextContent("3 free");
+    expect(screen.queryByRole("grid")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "List" })).toBeInTheDocument();
   });
 });

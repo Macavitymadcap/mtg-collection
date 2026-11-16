@@ -4,6 +4,7 @@ import { useState, type JSX } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { boards, labels, type Board, type CollectionEntry, type DeckCard } from "@mtg/shared";
+import AddRounded from "@mui/icons-material/AddRounded";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
 import EditRounded from "@mui/icons-material/EditRounded";
@@ -16,19 +17,28 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import Badge from "@mui/material/Badge";
+import Drawer from "@mui/material/Drawer";
+import Fab from "@mui/material/Fab";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import { ColorPips } from "@/components/cards/color-pips";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
 import { errorMessage } from "@/lib/errors";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import { useDeck, useDeleteDeck, useSetDeckCard, useUpdateDeck } from "../queries";
 import { AddFromCollection } from "./add-from-collection";
 import { DeckBoard } from "./deck-board";
 import { DeckForm } from "./deck-form";
 import { DeckStats } from "./deck-stats";
+
+type MobileTab = "cards" | "stats" | "check";
 
 /** Build a deck from owned cards: boards, quantities, stats and rule warnings. */
 export function DeckBuilder({ id }: { id: number }): JSX.Element {
@@ -39,6 +49,9 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
   const update = useUpdateDeck(id);
   const remove = useDeleteDeck();
   const [editing, setEditing] = useState(false);
+  const isMobile = useIsMobile();
+  const [tab, setTab] = useState<MobileTab>("cards");
+  const [adding, setAdding] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const back = (
@@ -77,6 +90,46 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
   const hasCommander = deck.cards.some((card) => card.board === "commander");
   const usedBoards = boards.filter((board) => deck.cards.some((card) => card.board === board));
 
+  const addPanel = (
+    <AddFromCollection
+      key={hasCommander ? "main" : "commander"}
+      defaultBoard={deck.format === "commander" && !hasCommander ? "commander" : "main"}
+      disabled={setCard.isPending}
+      onAdd={add}
+    />
+  );
+
+  const warnings = deck.warnings.length > 0 && (
+    <Alert severity="warning">
+      <AlertTitle>
+        {deck.warnings.length} {deck.warnings.length === 1 ? "thing to check" : "things to check"}
+      </AlertTitle>
+      <Stack component="ul" sx={{ m: 0, pl: 4 }}>
+        {deck.warnings.map((warning, i) => (
+          <li key={i}>{warning.message}</li>
+        ))}
+      </Stack>
+    </Alert>
+  );
+
+  const boardList =
+    usedBoards.length === 0 ? (
+      <EmptyState
+        title="No cards yet"
+        message={isMobile ? "Use + to add cards from your collection." : "Search your collection above to add some."}
+      />
+    ) : (
+      usedBoards.map((board) => (
+        <DeckBoard
+          key={board}
+          board={board}
+          cards={deck.cards.filter((card) => card.board === board)}
+          disabled={setCard.isPending}
+          onQuantity={changeQuantity}
+        />
+      ))
+    );
+
   return (
     <>
       <PageHeader
@@ -101,51 +154,60 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         {deck.cards.length > 0 && <ColorPips colors={deck.colorIdentity} />}
       </Stack>
 
-      <Grid container spacing={6}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Stack sx={{ gap: 4 }}>
-            <Paper sx={{ p: 4 }}>
-              <AddFromCollection
-                key={hasCommander ? "main" : "commander"}
-                defaultBoard={deck.format === "commander" && !hasCommander ? "commander" : "main"}
-                disabled={setCard.isPending}
-                onAdd={add}
-              />
-            </Paper>
+      {isMobile ? (
+        <>
+          <Tabs value={tab} onChange={(_event, value: MobileTab) => setTab(value)} variant="fullWidth" sx={{ mb: 4 }}>
+            <Tab value="cards" label={`Cards (${deck.cardCount})`} />
+            <Tab value="stats" label="Stats" />
+            <Tab
+              value="check"
+              label={
+                <Badge badgeContent={deck.warnings.length} color="warning" sx={{ "& .MuiBadge-badge": { right: -12 } }}>
+                  Check
+                </Badge>
+              }
+            />
+          </Tabs>
+          {tab === "cards" && <Stack sx={{ gap: 4 }}>{boardList}</Stack>}
+          {tab === "stats" && <DeckStats stats={deck.stats} />}
+          {tab === "check" &&
+            (warnings || <EmptyState title="Nothing to check" message="The deck follows its format's rules." />)}
 
-            {deck.warnings.length > 0 && (
-              <Alert severity="warning">
-                <AlertTitle>
-                  {deck.warnings.length} {deck.warnings.length === 1 ? "thing to check" : "things to check"}
-                </AlertTitle>
-                <Stack component="ul" sx={{ m: 0, pl: 4 }}>
-                  {deck.warnings.map((warning, i) => (
-                    <li key={i}>{warning.message}</li>
-                  ))}
-                </Stack>
-              </Alert>
-            )}
-
-            {usedBoards.length === 0 ? (
-              <EmptyState title="No cards yet" message="Search your collection above to add some." />
-            ) : (
-              usedBoards.map((board) => (
-                <DeckBoard
-                  key={board}
-                  board={board}
-                  cards={deck.cards.filter((card) => card.board === board)}
-                  disabled={setCard.isPending}
-                  onQuantity={changeQuantity}
-                />
-              ))
-            )}
-          </Stack>
+          {/* Above the bottom navigation bar */}
+          <Fab
+            color="primary"
+            aria-label="Add from your collection"
+            onClick={() => setAdding(true)}
+            sx={{ position: "fixed", right: 16, bottom: "calc(56px + env(safe-area-inset-bottom) + 16px)" }}
+          >
+            <AddRounded />
+          </Fab>
+          <Drawer
+            anchor="bottom"
+            open={adding}
+            onClose={() => setAdding(false)}
+            slotProps={{ paper: { sx: { borderTopLeftRadius: 16, borderTopRightRadius: 16, p: 4, pb: 8 } } }}
+          >
+            <Typography variant="h6" component="h2" sx={{ mb: 3 }}>
+              Add from your collection
+            </Typography>
+            {addPanel}
+          </Drawer>
+        </>
+      ) : (
+        <Grid container spacing={6}>
+          <Grid size={{ md: 8 }}>
+            <Stack sx={{ gap: 4 }}>
+              <Paper sx={{ p: 4 }}>{addPanel}</Paper>
+              {warnings}
+              {boardList}
+            </Stack>
+          </Grid>
+          <Grid size={{ md: 4 }}>
+            <DeckStats stats={deck.stats} />
+          </Grid>
         </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <DeckStats stats={deck.stats} />
-        </Grid>
-      </Grid>
+      )}
 
       <Dialog
         open={editing}
