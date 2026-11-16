@@ -270,7 +270,19 @@ export function EntryForm({
           </Grid>
         </Grid>
 
-        <Stack direction="row" sx={{ gap: 2, flexWrap: "wrap" }}>
+        <Stack
+          direction="row"
+          sx={{
+            gap: 2,
+            flexWrap: "wrap",
+            // Phones: keep save in reach, just above the bottom navigation bar
+            position: { xs: "sticky", md: "static" },
+            bottom: { xs: "calc(56px + env(safe-area-inset-bottom) + 8px)" },
+            zIndex: 1,
+            py: { xs: 2, md: 0 },
+            bgcolor: { xs: "background.paper", md: "transparent" },
+          }}
+        >
           <Button type="submit" variant="contained" loading={pending} disabled={formState.isSubmitting}>
             {submitLabel}
           </Button>

@@ -1,34 +1,55 @@
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { navigation } from "../../../test/router";
 import { AppShell } from "./app-shell";
+import { activeHref, mobileNavItems, navItems } from "./nav-items";
 
 describe("AppShell", () => {
-  it("renders the page with navigation to every section", () => {
-    render(
+  it("renders the page with a sidebar and a bottom bar (CSS shows one per screen size)", () => {
+    const { container } = render(
       <AppShell>
         <p>Page content</p>
       </AppShell>,
     );
 
     expect(screen.getByText("Page content")).toBeInTheDocument();
-    // Rendered twice (drawer for small screens, permanent for large), so take the first
-    const nav = screen.getAllByRole("navigation", { name: "Main" })[0]!;
+    // jsdom applies the CSS that hides one of them at its default width, and hidden elements have
+    // no accessible name, so select them by attribute
+    const [sidebar, bottomBar] = [...container.querySelectorAll<HTMLElement>('nav[aria-label="Main"]')];
     expect(
-      within(nav)
-        .getAllByRole("link")
+      within(sidebar!)
+        .getAllByRole("link", { hidden: true })
         .map((link) => link.getAttribute("href")),
     ).toEqual(["/", "/collection", "/decks", "/settings/data"]);
+    expect(
+      within(bottomBar!)
+        .getAllByRole("link", { hidden: true })
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["/", "/collection", "/collection/add", "/decks", "/settings/data"]);
   });
 
-  it("opens the navigation drawer on small screens", async () => {
-    const { container } = render(<AppShell>content</AppShell>);
-    // The test window is desktop-sized, where CSS hides this button, and hidden
-    // elements have no accessible name, so select it by its label attribute
-    const button = container.querySelector<HTMLButtonElement>('button[aria-label="Open navigation"]')!;
-    // The drawer (also hidden at this width) only mounts its copy of the navigation when open
-    expect(screen.getAllByRole("navigation", { hidden: true })).toHaveLength(1);
-    await userEvent.click(button);
-    expect(screen.getAllByRole("navigation", { hidden: true })).toHaveLength(2);
+  it("marks the current page in both", () => {
+    navigation.pathname = "/collection/add";
+    render(<AppShell>content</AppShell>);
+
+    const current = screen.getAllByRole("link", { current: "page", hidden: true });
+    expect(current.map((link) => link.getAttribute("href"))).toEqual(["/collection", "/collection/add"]);
+  });
+});
+
+describe("activeHref", () => {
+  it.each([
+    ["/", "/"],
+    ["/collection", "/collection"],
+    ["/collection/42", "/collection"],
+    ["/collection/add", "/collection/add"],
+    ["/decks/6", "/decks"],
+    ["/collectionist", false],
+  ])("matches %s to %s on the bottom bar", (path, expected) => {
+    expect(activeHref(path, mobileNavItems)).toBe(expected);
+  });
+
+  it("only has the sidebar's own items", () => {
+    expect(activeHref("/collection/add", navItems)).toBe("/collection");
   });
 });
