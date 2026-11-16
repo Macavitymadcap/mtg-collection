@@ -3,7 +3,7 @@ import { cleanup } from "@testing-library/react";
 import { createElement, type AnchorHTMLAttributes, type ImgHTMLAttributes } from "react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { server } from "./msw";
-import { router } from "./router";
+import { navigation, router } from "./router";
 
 // Fail any test that makes a request no handler covers (MSW 3 calls requests and messages "frames")
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
@@ -31,11 +31,14 @@ vi.mock("next/image", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
-  usePathname: () => "/",
+  usePathname: () => navigation.pathname,
   useSearchParams: () => new URLSearchParams(),
   notFound: () => {
     throw new Error("NEXT_NOT_FOUND");
   },
 }));
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  vi.clearAllMocks();
+  navigation.pathname = "/";
+});

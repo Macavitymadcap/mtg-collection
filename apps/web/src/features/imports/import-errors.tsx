@@ -28,7 +28,7 @@ export function ImportErrors({ errors, advice, lineLabel = "Line" }: ImportError
         </AlertTitle>
         {advice}
       </Alert>
-      <TableContainer sx={{ maxHeight: 480 }}>
+      <TableContainer sx={{ maxHeight: 480, overflowX: "auto" }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>

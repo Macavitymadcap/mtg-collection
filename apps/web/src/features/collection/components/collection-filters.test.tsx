@@ -1,8 +1,9 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import type { UrlUpdateEvent } from "nuqs/adapters/testing";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../../../test/render";
 import { CollectionFilters } from "./collection-filters";
+import { PHONE, setViewportWidth } from "../../../../test/viewport";
 
 function setup(searchParams = "") {
   const updates: URLSearchParams[] = [];
@@ -47,5 +48,25 @@ describe("CollectionFilters", () => {
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
     expect(last()).toBe("");
     expect(screen.getByLabelText("Search by name")).toHaveValue("");
+  });
+});
+
+describe("CollectionFilters on a phone", () => {
+  it("keeps search visible and puts the other filters in a sheet, counting active ones", async () => {
+    setViewportWidth(PHONE);
+    const { user, last } = setup("?colors=R&rarity=rare");
+
+    expect(screen.getByLabelText("Search by name")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Type")).not.toBeInTheDocument();
+    const filters = screen.getByRole("button", { name: "Filters" });
+    expect(filters.parentElement).toHaveTextContent("2");
+
+    await user.click(filters);
+    const sheet = screen.getByRole("group", { name: "Filters" });
+    await user.click(within(sheet).getByRole("button", { name: "Green" }));
+    expect(last()).toBe("colors=RG&rarity=rare");
+
+    await user.click(within(sheet).getByRole("button", { name: "Done" }));
+    await vi.waitFor(() => expect(screen.queryByRole("group", { name: "Filters" })).not.toBeInTheDocument());
   });
 });
