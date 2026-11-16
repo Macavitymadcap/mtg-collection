@@ -10,6 +10,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
@@ -168,13 +169,15 @@ export function DashboardView(): JSX.Element {
             ) : (
               <List>
                 {decks.data.slice(0, 8).map((deck) => (
-                  <ListItemButton key={deck.id} component={Link} href={`/decks/${deck.id}`}>
-                    <ListItemText
-                      primary={deck.name}
-                      secondary={`${labels.format[deck.format]} · ${deck.cardCount} cards${deck.warningCount ? ` · ${deck.warningCount} to check` : ""}`}
-                    />
-                    <ColorPips colors={deck.colorIdentity} size={16} />
-                  </ListItemButton>
+                  <ListItem key={deck.id} disablePadding>
+                    <ListItemButton component={Link} href={`/decks/${deck.id}`}>
+                      <ListItemText
+                        primary={deck.name}
+                        secondary={`${labels.format[deck.format]} · ${deck.cardCount} cards${deck.warningCount ? ` · ${deck.warningCount} to check` : ""}`}
+                      />
+                      <ColorPips colors={deck.colorIdentity} size={16} />
+                    </ListItemButton>
+                  </ListItem>
                 ))}
               </List>
             )}

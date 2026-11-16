@@ -21,7 +21,7 @@ export function ColorBar({ counts }: { counts: Record<string, number> }): JSX.El
       sx={{ height: 10, borderRadius: 5, overflow: "hidden", gap: "2px" }}
     >
       {parts.map((color) => (
-        <Tooltip key={color} title={`${names[color]}: ${counts[color]}`}>
+        <Tooltip key={color} title={`${names[color]}: ${counts[color]}`} describeChild>
           <Box sx={{ flexGrow: counts[color], bgcolor: `mana.${color}` }} />
         </Tooltip>
       ))}

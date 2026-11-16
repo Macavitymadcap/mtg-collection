@@ -6,6 +6,7 @@ import type { Card, CollectionEntry } from "@mtg/shared";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
@@ -121,12 +122,14 @@ export function AddCardView(): JSX.Element {
               </Typography>
               <List dense>
                 {added.map((entry) => (
-                  <ListItemButton key={entry.id} component={Link} href={`/collection/${entry.id}`}>
-                    <ListItemText
-                      primary={`${entry.quantity} × ${entry.card.name}`}
-                      secondary={`${printingLabel(entry.card)} · ${entry.condition}`}
-                    />
-                  </ListItemButton>
+                  <ListItem key={entry.id} disablePadding>
+                    <ListItemButton component={Link} href={`/collection/${entry.id}`}>
+                      <ListItemText
+                        primary={`${entry.quantity} × ${entry.card.name}`}
+                        secondary={`${printingLabel(entry.card)} · ${entry.condition}`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
                 ))}
               </List>
             </Paper>
