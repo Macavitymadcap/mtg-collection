@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch or pull request cancels the older run
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      # Matches docker-compose.yml and apps/api/.env.test: port 3310, user app/app, database mtg_test
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: mtg_test
+          MYSQL_USER: app
+          MYSQL_PASSWORD: app
+        ports:
+          - 3310:3306
+        options: >-
+          --health-cmd="mysqladmin ping -uroot -proot --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Format
+        run: npm run format:check
+
+      # Also builds @mtg/shared and generates tsoa routes and Next's route types
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Read by apps/web/src/lib/env.ts during the build; not used to call anything
+          API_BASE_URL: http://localhost:3400/api
+          API_JWT_SECRET: ci-only-not-a-real-secret
+
+      # Fails if coverage drops below the thresholds in each workspace's vitest config
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: |
+            apps/api/coverage
+            apps/web/coverage
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Reported, not enforced: the open advisories are in dev tooling
+      - name: Audit dependencies
+        continue-on-error: true
+        run: npm audit --audit-level=moderate

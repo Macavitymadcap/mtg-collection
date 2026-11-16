@@ -11,17 +11,18 @@
     "build": "npm run build -w @mtg/shared && npm run build -w @mtg/api && npm run build -w @mtg/web",
     "typecheck": "npm run build -w @mtg/shared && npm run typecheck --workspaces --if-present",
     "test": "npm run build -w @mtg/shared && npm run test --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "npm run -s codegen && npm run lint --workspaces --if-present",
     "db:up": "docker compose up -d mysql",
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate -w @mtg/api",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint:fix": "npm run lint --workspaces --if-present -- --fix",
+    "lint:fix": "npm run -s codegen && npm run lint --workspaces --if-present -- --fix",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
     "db:export": "npm run -s db:export -w @mtg/api --",
     "db:import": "npm run -s db:import -w @mtg/api --",
-    "test:coverage": "npm run build -w @mtg/shared && npm run test:coverage --workspaces --if-present"
+    "test:coverage": "npm run build -w @mtg/shared && npm run test:coverage --workspaces --if-present",
+    "codegen": "npm run -s build -w @mtg/shared && npm run -s routes -w @mtg/api && npm run -s typegen -w @mtg/web"
   },
   "engines": {
     "node": ">=24"

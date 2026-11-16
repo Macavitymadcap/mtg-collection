@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # One weekly pull request for npm minor and patch updates, so they don't
+  # arrive one at a time; majors still get their own pull requests
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
