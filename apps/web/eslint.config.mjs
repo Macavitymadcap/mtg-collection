@@ -22,6 +22,11 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-misused-promises": ["error", { checksVoidReturn: { attributes: false } }],
     },
   },
+  {
+    // Playwright tests: their fixtures call a function named `use`, which isn't a React hook
+    files: ["e2e/**"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

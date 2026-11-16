@@ -11,6 +11,8 @@ export default defineConfig({
     environment: "jsdom",
     environmentOptions: { jsdom: { url: "http://localhost:3000" } },
     setupFiles: ["./test/setup.ts"],
+    // Playwright's tests, run by `npm run test:e2e`
+    exclude: ["e2e/**", "node_modules/**"],
     // Values for src/lib/env.ts
     env: { API_BASE_URL: "http://api.test/api", API_JWT_SECRET: "test-secret-0123456789" },
     coverage: {
@@ -18,6 +20,7 @@ export default defineConfig({
       include: ["src/**/*.{ts,tsx}"],
       exclude: [
         "src/**/*.test.{ts,tsx}",
+        "e2e/**",
         // Thin wiring with nothing of its own to test: route files that only
         // forward to the API or render one feature component
         "src/app/**/route.ts",

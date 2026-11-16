@@ -111,11 +111,19 @@ npm run lint          # ESLint in every workspace (npm run lint:fix to fix what 
 npm run typecheck     # including tests
 npm run test          # shared rules, API (integration tests use the mtg_test database) and web
 npm run test:coverage # the same with coverage reports; fails below the thresholds in each vitest config
+npm run test:e2e      # browser tests (Playwright): desktop and phone journeys, accessibility checks
 ```
 
+The browser tests build the web app and start it on port 3001, with the API
+on 3401 (using the `mtg_test` database, which they reset) and a fake Scryfall
+and MTGJSON on 3402, so they don't touch your data, need the internet, or
+clash with `npm run dev`. Run `npx playwright install chromium` in `apps/web`
+once first. Failures leave traces in `apps/web/test-results`
+(`npx playwright show-trace <file>`).
+
 GitHub Actions runs the same checks, plus a production build, on every pull
-request and push to `main` (`.github/workflows/ci.yml`), against a MySQL 8.4
-service container. Dependabot opens weekly update pull requests.
+request and push to `main` (`.github/workflows/ci.yml`), then the browser
+tests, against a MySQL 8.4 service container. Dependabot opens weekly update pull requests.
 
 ## Notes
 
