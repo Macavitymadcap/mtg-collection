@@ -1,5 +1,7 @@
 # MTG Collection
 
+[![CI](https://github.com/Macavitymadcap/mtg-collection/actions/workflows/ci.yml/badge.svg)](https://github.com/Macavitymadcap/mtg-collection/actions/workflows/ci.yml)
+
 Manage a Magic: The Gathering collection: add the cards you own (looked up on
 Scryfall), import them in bulk, build decks from them, and export everything as JSON.
 
@@ -105,13 +107,21 @@ hosted environment later. The file format is `ExportFile` in
 ```bash
 npm run check         # everything below, in order
 npm run format:check  # Prettier (npm run format to fix)
-npm run lint          # ESLint in every workspace (npm run lint:fix to fix what it can)
+npm run lint          # ESLint in every workspace (npm run lint:fix to fix what it can); runs codegen first
 npm run typecheck     # including tests
 npm run test          # shared rules, API (integration tests use the mtg_test database) and web
 npm run test:coverage # the same with coverage reports; fails below the thresholds in each vitest config
 ```
 
+GitHub Actions runs the same checks, plus a production build, on every pull
+request and push to `main` (`.github/workflows/ci.yml`), against a MySQL 8.4
+service container. Dependabot opens weekly update pull requests.
+
 ## Notes
+
+- `npm run codegen` creates the generated, git-ignored files that linting and
+  type-checking need: the built `@mtg/shared`, tsoa's routes, and Next's route
+  types. `lint`, `typecheck`, `test` and `dev` run their parts of it themselves.
 
 - `@mtg/shared` is consumed from its built `dist/`. `npm run dev` rebuilds it on change; otherwise run `npm run build -w @mtg/shared` after editing it.
 - The shared package keeps top-level `main` and `types` fields as well as `exports`: tsoa's type resolver doesn't read `exports`, and without them it can't find the shared types.
