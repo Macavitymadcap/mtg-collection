@@ -7,6 +7,7 @@ import WarningAmberRounded from "@mui/icons-material/WarningAmberRounded";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
@@ -38,6 +39,15 @@ export function DecksView(): JSX.Element {
             <Grid key={deck.id} size={{ xs: 12, sm: 6, lg: 4 }}>
               <Card sx={{ height: "100%" }}>
                 <CardActionArea component={Link} href={`/decks/${deck.id}`} sx={{ height: "100%" }}>
+                  {deck.coverArt && (
+                    <CardMedia
+                      component="img"
+                      image={deck.coverArt}
+                      alt=""
+                      loading="lazy"
+                      sx={{ height: 120, objectFit: "cover", objectPosition: "center 30%" }}
+                    />
+                  )}
                   <IdentityStripe colors={deck.colorIdentity} />
                   <CardContent>
                     <Stack sx={{ gap: 2 }}>

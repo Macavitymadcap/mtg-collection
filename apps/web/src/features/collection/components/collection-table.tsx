@@ -6,6 +6,7 @@ import { labels, type CollectionEntry, type CollectionSort, type Page } from "@m
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import { DataGrid, type GridColDef, type GridRowParams, type GridSortModel } from "@mui/x-data-grid";
+import { CardPreview } from "@/components/cards/card-preview";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
 import { formatPrice, printingLabel } from "@/lib/format";
 import { useCollectionParams } from "../use-collection-params";
@@ -29,7 +30,18 @@ function toSortModel(sort: CollectionSort): GridSortModel {
 const flagNames = ["signed", "altered", "misprint", "proxy"] as const;
 
 const columns: GridColDef<CollectionEntry>[] = [
-  { field: "name", headerName: "Name", flex: 2, minWidth: 180, valueGetter: (_value, row) => row.card.name },
+  {
+    field: "name",
+    headerName: "Name",
+    flex: 2,
+    minWidth: 180,
+    valueGetter: (_value, row) => row.card.name,
+    renderCell: ({ row }) => (
+      <CardPreview card={row.card}>
+        <span>{row.card.name}</span>
+      </CardPreview>
+    ),
+  },
   {
     field: "printing",
     headerName: "Printing",

@@ -7,7 +7,12 @@ import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
 import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
 
-const krenko = makeCard({ name: "Krenko", typeLine: "Legendary Creature — Goblin", manaValue: 3 });
+const krenko = makeCard({
+  name: "Krenko",
+  typeLine: "Legendary Creature — Goblin",
+  manaValue: 3,
+  imageNormal: "https://cards.scryfall.io/normal/front/k/r/krenko.jpg",
+});
 const bolt = makeCard({ name: "Lightning Bolt", manaValue: 1 });
 const counterspell = makeCard({ name: "Counterspell", colors: "U", colorIdentity: "U" });
 container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(new FakeCatalog([krenko, bolt, counterspell]));
@@ -77,6 +82,15 @@ describe("decks", () => {
     expect(list.body).toEqual([
       expect.objectContaining({ id: deckId, cardCount: 3, warningCount: 2, colorIdentity: "R" }),
     ]);
+  });
+
+  it("uses the commander's art crop as the deck's cover", async () => {
+    const deckId = await createDeck();
+    expect((await request(app).get("/api/decks").set(auth()).expect(200)).body[0].coverArt).toBeNull();
+
+    await setCard(deckId, await addEntry(krenko.id), 1, "commander").expect(200);
+    const list = await request(app).get("/api/decks").set(auth()).expect(200);
+    expect(list.body[0].coverArt).toBe("https://cards.scryfall.io/art_crop/front/k/r/krenko.jpg");
   });
 
   it("tracks allocation across decks, ignoring maybe boards", async () => {

@@ -3,7 +3,7 @@ import type { Card } from "./card.js";
 import type { CollectionEntry } from "./collection.js";
 import type { Board } from "./constants.js";
 import type { DeckCard } from "./deck.js";
-import { checkDeck, deckColorIdentity, deckStats, primaryType } from "./rules.js";
+import { artCropUrl, checkDeck, coverCard, deckColorIdentity, deckStats, primaryType } from "./rules.js";
 
 let id = 0;
 
@@ -168,5 +168,28 @@ describe("stats and identity", () => {
     expect(
       deckColorIdentity("casual", [line(card({ colorIdentity: "GW" }), 1), line(card({ colorIdentity: "U" }), 1)]),
     ).toBe("WUG");
+  });
+});
+
+describe("cover art", () => {
+  it("uses the commander, else the most expensive non-land on the main deck", () => {
+    const commander = line(card({ name: "Dogmeat" }), 1, "commander");
+    const bigLand = line(card({ name: "Land", typeLine: "Land", manaValue: 9 }), 1);
+    const big = line(card({ name: "Big", manaValue: 6 }), 1);
+    const small = line(card({ name: "Small", manaValue: 1 }), 1);
+    const side = line(card({ name: "Side", manaValue: 12 }), 1, "side");
+
+    expect(coverCard([small, big, commander])?.entry.card.name).toBe("Dogmeat");
+    expect(coverCard([small, bigLand, big, side])?.entry.card.name).toBe("Big");
+    expect(coverCard([side])?.entry.card.name).toBe("Side");
+    expect(coverCard([])).toBeUndefined();
+  });
+
+  it("turns a Scryfall image URL into its art crop", () => {
+    expect(artCropUrl("https://cards.scryfall.io/normal/front/a/b/ab.jpg?1")).toBe(
+      "https://cards.scryfall.io/art_crop/front/a/b/ab.jpg?1",
+    );
+    expect(artCropUrl("https://example.com/other.jpg")).toBeNull();
+    expect(artCropUrl(null)).toBeNull();
   });
 });

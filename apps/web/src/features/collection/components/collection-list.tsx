@@ -11,6 +11,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { CardImage } from "@/components/cards/card-image";
+import { CardPreview } from "@/components/cards/card-preview";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
 import { printingLabel } from "@/lib/format";
 import { useCollectionParams } from "../use-collection-params";
@@ -31,9 +32,12 @@ export function CollectionList({ data }: { data: Page<CollectionEntry> }): JSX.E
               divider={i < data.results.length - 1}
               sx={{ gap: 3, py: 2 }}
             >
-              <Box sx={{ width: 44, flexShrink: 0 }}>
-                <CardImage card={entry.card} />
-              </Box>
+              {/* Long-press the thumbnail for a full-size look */}
+              <CardPreview card={entry.card}>
+                <Box sx={{ width: 44, flexShrink: 0 }}>
+                  <CardImage card={entry.card} />
+                </Box>
+              </CardPreview>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography noWrap sx={{ fontWeight: 500 }}>
                   {entry.card.name}
