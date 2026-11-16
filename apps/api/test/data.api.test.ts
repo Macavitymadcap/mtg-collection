@@ -89,8 +89,8 @@ describe("GET /api/data/export", () => {
     ]);
   });
 
-  it("needs the data:admin scope", async () => {
-    await request(app).get("/api/data/export").set(auth("cards:read cards:write")).expect(403);
+  it("needs signing in, or a token with the data:admin scope", async () => {
+    await request(app).get("/api/data/export").set(auth("cards:read cards:write")).expect(401);
   });
 });
 

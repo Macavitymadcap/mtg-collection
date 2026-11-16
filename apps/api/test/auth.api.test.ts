@@ -14,8 +14,12 @@ const sign = (payload: object, secret = config.JWT_SECRET, options: jwt.SignOpti
   `Bearer ${jwt.sign(payload, secret, options)}`;
 
 describe("authentication", () => {
+  it("rejects requests without an Authorization header with 401", async () => {
+    const response = await request(app).get("/api/decks").expect(401);
+    expect(response.body).toEqual({ name: "Unauthorized", message: "Missing bearer token" });
+  });
+
   it.each([
-    ["no Authorization header", undefined, "Missing bearer token"],
     ["a non-bearer header", "Basic dXNlcjpwYXNz", "Missing bearer token"],
     ["a malformed token", "Bearer not-a-jwt", "Invalid or expired token"],
     [
@@ -29,9 +33,7 @@ describe("authentication", () => {
       "Invalid or expired token",
     ],
   ])("rejects %s with 401", async (_case, header, message) => {
-    const req = request(app).get("/api/decks");
-    if (header) void req.set("Authorization", header);
-    const response = await req.expect(401);
+    const response = await request(app).get("/api/decks").set("Authorization", header).expect(401);
     expect(response.body).toEqual({ name: "Unauthorized", message });
   });
 
@@ -44,10 +46,10 @@ describe("authentication", () => {
 
   it("names the missing scope with 403", async () => {
     const response = await request(app)
-      .get("/api/data/export")
-      .set("Authorization", sign({ scope: "cards:read" }))
+      .get("/api/decks")
+      .set("Authorization", sign({ scope: "cards:write" }))
       .expect(403);
-    expect(response.body.message).toBe("Requires scope: data:admin");
+    expect(response.body.message).toBe("Requires scope: cards:read");
   });
 
   it("treats a token without scopes as having none", async () => {

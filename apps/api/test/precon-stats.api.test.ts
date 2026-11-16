@@ -63,7 +63,7 @@ afterAll(() => db.destroy());
 
 function importPrecon(body: Record<string, unknown>, dryRun = false) {
   return request(app)
-    .post(`/api/import/precon${dryRun ? "?dryRun=true" : ""}`)
+    .post(`/api/import/precon?dryRun=${dryRun}`)
     .set(auth())
     .send({ fileName: "ScrappySurvivors_PIP", createDeck: true, ...body });
 }
@@ -171,7 +171,7 @@ describe("GET /api/stats", () => {
       })
       .expect(201);
 
-    const response = await request(app).get("/api/stats").set(auth("cards:read")).expect(200);
+    const response = await request(app).get("/api/stats").set(auth()).expect(200);
 
     expect(response.body).toMatchObject({
       entries: 4,

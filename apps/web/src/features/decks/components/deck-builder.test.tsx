@@ -31,13 +31,12 @@ function deck(overrides: Partial<DeckDetail> = {}): DeckDetail {
 
 /** Pages of a collection of `total` entries, named so they sort in order. */
 function collectionPages(total: number) {
-  const entries = Array.from({ length: total }, (_, i) =>
-    makeEntry({
-      id: 100 + i,
-      card: makeCard({ name: i === 0 ? "Forest" : `Card ${String(i).padStart(3, "0")}` }),
-      quantity: 2,
-    }),
-  );
+  const entries = [
+    makeEntry({ id: 100, card: makeCard({ name: "Forest" }), quantity: 2 }),
+    ...Array.from({ length: total - 1 }, (_, i) =>
+      makeEntry({ id: 101 + i, card: makeCard({ name: `Card ${String(i + 1).padStart(3, "0")}` }), quantity: 2 }),
+    ),
+  ];
   return http.get("*/api/collection", ({ request }) => {
     const params = new URL(request.url).searchParams;
     const page = Number(params.get("page"));

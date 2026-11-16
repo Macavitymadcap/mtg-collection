@@ -15,6 +15,7 @@ import {
   SuccessResponse,
   Tags,
 } from "tsoa";
+import { redactDeck } from "../auth/visibility.js";
 import { DeckService } from "./deck.service.js";
 
 @injectable()
@@ -33,7 +34,7 @@ export class DeckController extends Controller {
   }
 
   @Post()
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @SuccessResponse(201, "Created")
   @Response(409, "Name already used")
   public async create(@Body() body: CreateDeckRequest): Promise<DeckDetail> {
@@ -46,12 +47,12 @@ export class DeckController extends Controller {
   @Get("{id}")
   @Security("jwt", ["cards:read"])
   @Response(404, "Not found")
-  public get(@Path() id: number): Promise<DeckDetail> {
-    return this.service.get(id);
+  public async get(@Path() id: number): Promise<DeckDetail> {
+    return redactDeck(await this.service.get(id));
   }
 
   @Patch("{id}")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @Response(404, "Not found")
   @Response(409, "Name already used")
   public update(@Path() id: number, @Body() body: UpdateDeckRequest): Promise<DeckDetail> {
@@ -60,7 +61,7 @@ export class DeckController extends Controller {
 
   /** Deletes the deck. The cards stay in the collection. */
   @Delete("{id}")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @SuccessResponse(204, "Deleted")
   @Response(404, "Not found")
   public async remove(@Path() id: number): Promise<void> {
@@ -70,7 +71,7 @@ export class DeckController extends Controller {
 
   /** Sets how many copies of a collection entry are on a board. Quantity 0 removes them. Returns the updated deck. */
   @Put("{id}/cards")
-  @Security("jwt", ["cards:write"])
+  @Security("editor", ["cards:write"])
   @Response(400, "Unknown collection entry")
   @Response(404, "Not found")
   public setCard(@Path() id: number, @Body() body: SetDeckCardRequest): Promise<DeckDetail> {

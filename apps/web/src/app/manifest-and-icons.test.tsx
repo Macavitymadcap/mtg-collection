@@ -9,9 +9,11 @@ describe("home-screen install", () => {
     const app = manifest();
     expect(app).toMatchObject({ name: "MTG Collection", display: "standalone", start_url: "/" });
 
+    expect(app.icons).toBeDefined();
+    const icons = app.icons as NonNullable<typeof app.icons>;
     const generated = generateImageMetadata().map((icon) => `/icon/${icon.id}`);
-    for (const icon of app.icons ?? []) expect(generated).toContain(icon.src);
-    expect(app.icons?.some((icon) => icon.purpose === "maskable")).toBe(true);
+    expect(generated).toEqual(expect.arrayContaining(icons.map((icon) => icon.src)));
+    expect(icons).toContainEqual(expect.objectContaining({ purpose: "maskable" }));
   });
 
   it("draws a card with the five colours", () => {
