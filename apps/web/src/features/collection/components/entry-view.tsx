@@ -23,6 +23,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { CardImage } from "@/components/cards/card-image";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
+import { RulesText } from "@/components/cards/rules-text";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
 import { ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
@@ -123,8 +124,8 @@ export function EntryView({ id }: { id: number }): JSX.Element {
                   <ManaSymbols cost={card.manaCost} size={18} />
                 </Stack>
                 {card.oracleText && (
-                  <Typography sx={{ whiteSpace: "pre-line" }} color="text.secondary">
-                    {card.oracleText}
+                  <Typography component="div" color="text.secondary">
+                    <RulesText text={card.oracleText} />
                   </Typography>
                 )}
                 <Typography variant="caption" color="text.secondary">
