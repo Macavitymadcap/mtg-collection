@@ -19,12 +19,12 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import MuiLink from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
-import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { CardImage } from "@/components/cards/card-image";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
+import { ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
 import { PrintingPicker } from "@/features/catalog/printing-picker";
 import { errorMessage } from "@/lib/errors";
@@ -48,24 +48,13 @@ export function EntryView({ id }: { id: number }): JSX.Element {
     </Button>
   );
 
-  if (isPending) {
-    return (
-      <Grid container spacing={6}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Skeleton variant="rounded" sx={{ aspectRatio: "5 / 7", height: "auto" }} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Skeleton variant="rounded" height={400} />
-        </Grid>
-      </Grid>
-    );
-  }
+  if (isPending) return <LoadingState shape="detail" />;
 
   if (isError) {
     return (
       <>
         <PageHeader title="Card not found" actions={back} />
-        <Alert severity="error">{errorMessage(error, "Could not load this entry.")}</Alert>
+        <ErrorState error={error} fallback="Could not load this entry." />
       </>
     );
   }

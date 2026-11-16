@@ -4,19 +4,17 @@ import type { JSX } from "react";
 import Link from "next/link";
 import { labels } from "@mtg/shared";
 import WarningAmberRounded from "@mui/icons-material/WarningAmberRounded";
-import Alert from "@mui/material/Alert";
-import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
-import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { IdentityStripe } from "@/components/cards/color-bar";
 import { ColorPips } from "@/components/cards/color-pips";
+import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
-import { errorMessage } from "@/lib/errors";
 import { useDecks } from "../queries";
 import { NewDeckButton } from "./new-deck-button";
 
@@ -29,25 +27,18 @@ export function DecksView(): JSX.Element {
       <PageHeader title="Decks" subtitle="Built from the cards you own" actions={<NewDeckButton />} />
 
       {isPending ? (
-        <Grid container spacing={4}>
-          {Array.from({ length: 3 }, (_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <Skeleton variant="rounded" height={140} />
-            </Grid>
-          ))}
-        </Grid>
+        <LoadingState shape="tiles" count={3} />
       ) : isError ? (
-        <Alert severity="error" action={<Button onClick={() => void refetch()}>Retry</Button>}>
-          {errorMessage(error, "Could not load decks.")}
-        </Alert>
+        <ErrorState error={error} fallback="Could not load decks." onRetry={() => void refetch()} />
       ) : decks.length === 0 ? (
-        <Typography color="text.secondary">No decks yet. Create one to start building from your collection.</Typography>
+        <EmptyState title="No decks yet" message="Use New deck to start building from your collection." />
       ) : (
         <Grid container spacing={4}>
           {decks.map((deck) => (
             <Grid key={deck.id} size={{ xs: 12, sm: 6, lg: 4 }}>
               <Card sx={{ height: "100%" }}>
                 <CardActionArea component={Link} href={`/decks/${deck.id}`} sx={{ height: "100%" }}>
+                  <IdentityStripe colors={deck.colorIdentity} />
                   <CardContent>
                     <Stack sx={{ gap: 2 }}>
                       <Stack direction="row" sx={{ justifyContent: "space-between", gap: 2, alignItems: "flex-start" }}>

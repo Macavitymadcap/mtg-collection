@@ -6,15 +6,12 @@ import AddRounded from "@mui/icons-material/AddRounded";
 import GridViewRounded from "@mui/icons-material/GridViewRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
 import UploadFileRounded from "@mui/icons-material/UploadFileRounded";
-import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
-import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Typography from "@mui/material/Typography";
+import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
-import { errorMessage } from "@/lib/errors";
 import { useCollection } from "../queries";
 import { toCollectionQuery, useCollectionParams } from "../use-collection-params";
 import { CollectionFilters } from "./collection-filters";
@@ -65,15 +62,13 @@ export function CollectionView(): JSX.Element {
       </Stack>
 
       {isError ? (
-        <Alert severity="error" action={<Button onClick={() => void refetch()}>Retry</Button>}>
-          {errorMessage(error, "Could not load the collection.")}
-        </Alert>
+        <ErrorState error={error} fallback="Could not load the collection." onRetry={() => void refetch()} />
       ) : params.view === "table" ? (
         <CollectionTable data={data} loading={isFetching} />
       ) : isPending ? (
-        <Skeleton variant="rounded" height={400} />
+        <LoadingState shape="cards" count={12} />
       ) : data.results.length === 0 ? (
-        <Typography color="text.secondary">No cards match.</Typography>
+        <EmptyState title="No cards match." message="Try fewer filters, or add some cards." />
       ) : (
         <CollectionGallery data={data} />
       )}

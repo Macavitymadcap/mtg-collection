@@ -6,6 +6,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { ColorBar } from "@/components/cards/color-bar";
 import { ColorPips } from "@/components/cards/color-pips";
 
 /** Mana curve chart plus colour and type counts for the played boards. */
@@ -26,7 +27,7 @@ export function DeckStats({ stats }: { stats: Stats }): JSX.Element {
         height={200}
         xAxis={[{ scaleType: "band", data: curve.map(([label]) => label) }]}
         yAxis={[{ tickMinStep: 1, width: 30 }]}
-        series={[{ data: curve.map(([, value]) => value), label: "Cards" }]}
+        series={[{ data: curve.map(([, value]) => value), label: "Cards", color: "var(--mui-palette-primary-main)" }]}
         hideLegend
         margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
       />
@@ -39,13 +40,16 @@ export function DeckStats({ stats }: { stats: Stats }): JSX.Element {
           No cards yet.
         </Typography>
       ) : (
-        <Stack direction="row" sx={{ gap: 3, flexWrap: "wrap" }}>
-          {colors.map(([color, value]) => (
-            <Stack key={color} direction="row" sx={{ gap: 1, alignItems: "center" }}>
-              <ColorPips colors={color === "C" ? "" : color} />
-              <Typography variant="body2">{value}</Typography>
-            </Stack>
-          ))}
+        <Stack sx={{ gap: 2 }}>
+          <ColorBar counts={stats.colors} />
+          <Stack direction="row" sx={{ gap: 3, flexWrap: "wrap" }}>
+            {colors.map(([color, value]) => (
+              <Stack key={color} direction="row" sx={{ gap: 1, alignItems: "center" }}>
+                <ColorPips colors={color === "C" ? "" : color} />
+                <Typography variant="body2">{value}</Typography>
+              </Stack>
+            ))}
+          </Stack>
         </Stack>
       )}
 
