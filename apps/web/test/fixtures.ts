@@ -68,6 +68,7 @@ export function makeDeckSummary(overrides: Partial<DeckSummary> = {}): DeckSumma
     format: "commander",
     description: null,
     colorIdentity: "R",
+    coverArt: null,
     cardCount: 0,
     warningCount: 0,
     createdAt: "2026-11-13T12:00:00.000Z",

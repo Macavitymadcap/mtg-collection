@@ -12,6 +12,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { CardPreview } from "@/components/cards/card-preview";
 import { ManaSymbols } from "@/components/cards/mana-symbols";
 import { printingLabel } from "@/lib/format";
 
@@ -79,21 +80,26 @@ export function DeckBoard({ board, cards, disabled, onQuantity }: DeckBoardProps
                     </IconButton>
                   </Stack>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Link
-                      component={NextLink}
-                      href={`/collection/${entry.id}`}
-                      underline="hover"
-                      color="inherit"
-                      // Phones: let long names wrap rather than cutting them off
-                      sx={{
-                        display: "block",
-                        whiteSpace: { md: "nowrap" },
-                        overflow: { md: "hidden" },
-                        textOverflow: { md: "ellipsis" },
-                      }}
-                    >
-                      {entry.card.name}
-                    </Link>
+                    <CardPreview card={entry.card}>
+                      <Link
+                        component={NextLink}
+                        href={`/collection/${entry.id}`}
+                        underline="hover"
+                        color="inherit"
+                        // Phones: let long names wrap rather than cutting them off
+                        sx={{
+                          // Only as wide as the name, so the hover preview opens beside it
+                          display: "inline-block",
+                          maxWidth: "100%",
+                          verticalAlign: "top",
+                          whiteSpace: { md: "nowrap" },
+                          overflow: { md: "hidden" },
+                          textOverflow: { md: "ellipsis" },
+                        }}
+                      >
+                        {entry.card.name}
+                      </Link>
+                    </CardPreview>
                     <Stack direction="row" sx={{ gap: 1, alignItems: "center", flexWrap: "wrap" }}>
                       <Typography variant="caption" color="text.secondary">
                         {printingLabel(entry.card)} · {entry.condition}
