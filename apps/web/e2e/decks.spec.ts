@@ -31,3 +31,17 @@ test("warns about the commander's colours", async ({ page }) => {
 
   await expect(page.getByText("Llanowar Elves is outside the commander's colours (G).")).toBeVisible();
 });
+
+test("collapses deck sections and remembers them", async ({ page }) => {
+  await page.goto("/decks");
+  await page.getByRole("link", { name: /Goblins/ }).click();
+
+  await page.getByRole("button", { name: "Land (20)" }).click();
+  await expect(page.getByRole("link", { name: "Mountain" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Lightning Bolt" })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Land (20)" })).toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("button", { name: "Expand all" }).click();
+  await expect(page.getByRole("link", { name: "Mountain" })).toBeVisible();
+});

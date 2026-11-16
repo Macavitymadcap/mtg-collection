@@ -123,6 +123,44 @@ describe("GET /api/collection", () => {
   });
 });
 
+describe("sorting the collection", () => {
+  // Same set, collector numbers that sort wrongly as text ("10" before "2")
+  const n10 = makeCard({ name: "Ten", setCode: "srt", collectorNumber: "10" });
+  const n2 = makeCard({ name: "Two", setCode: "srt", collectorNumber: "2" });
+  const n1a = makeCard({ name: "One A", setCode: "srt", collectorNumber: "1a" });
+  catalog.cards.push(n10, n2, n1a);
+
+  const names = async (sort: string) =>
+    (
+      (await request(app).get(`/api/collection?sort=${sort}&setCode=srt`).set(auth("cards:read")).expect(200)).body
+        .results as {
+        card: { name: string };
+      }[]
+    ).map((e) => e.card.name);
+
+  it("sorts printings by set, then collector number as a number, both ways", async () => {
+    await add({ scryfallId: n10.id });
+    await add({ scryfallId: n2.id });
+    await add({ scryfallId: n1a.id });
+
+    expect(await names("setCode")).toEqual(["One A", "Two", "Ten"]);
+    expect(await names("-setCode")).toEqual(["Ten", "Two", "One A"]);
+  });
+
+  it("sorts by price paid, with unpriced entries last both ways", async () => {
+    await add({ scryfallId: n10.id, purchasePrice: 5, currency: "GBP" });
+    await add({ scryfallId: n2.id });
+    await add({ scryfallId: n1a.id, purchasePrice: 1, currency: "GBP" });
+
+    expect(await names("price")).toEqual(["One A", "Ten", "Two"]);
+    expect(await names("-price")).toEqual(["Ten", "One A", "Two"]);
+  });
+
+  it("rejects unknown sorts", async () => {
+    await request(app).get("/api/collection?sort=colour").set(auth("cards:read")).expect(400);
+  });
+});
+
 describe("GET, PATCH and DELETE /api/collection/{id}", () => {
   it("returns an entry with its deck usages", async () => {
     const { body: entry } = await add({ scryfallId: shock.id });

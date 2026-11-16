@@ -84,6 +84,29 @@ describe("CollectionView", () => {
     expect(updates.at(-1)).toBe("sort=manaValue");
   });
 
+  it("sorts by printing and price paid in both directions from the headers", async () => {
+    fakeCollection();
+    const { user, updates } = setup();
+
+    const printing = await screen.findByRole("columnheader", { name: /Printing/ });
+    await user.click(printing);
+    expect(updates.at(-1)).toBe("sort=setCode");
+    await user.click(printing);
+    expect(updates.at(-1)).toBe("sort=-setCode");
+
+    await user.click(screen.getByRole("columnheader", { name: /Paid/ }));
+    expect(updates.at(-1)).toBe("sort=price");
+  });
+
+  it("offers a sort menu in the image grid, which has no headers", async () => {
+    fakeCollection();
+    const { user, updates } = setup("?view=grid");
+
+    await user.click(await screen.findByRole("combobox", { name: "Sort by" }));
+    await user.click(screen.getByRole("option", { name: "Price paid (high–low)" }));
+    expect(updates.at(-1)).toBe("view=grid&sort=-price");
+  });
+
   it("switches to the image grid", async () => {
     fakeCollection([bolt, forest], 120);
     const { user, updates } = setup("?view=grid");

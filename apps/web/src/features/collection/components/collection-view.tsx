@@ -2,11 +2,14 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
+import { collectionSortLabels, type CollectionSort } from "@mtg/shared";
 import AddRounded from "@mui/icons-material/AddRounded";
 import GridViewRounded from "@mui/icons-material/GridViewRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
 import UploadFileRounded from "@mui/icons-material/UploadFileRounded";
 import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -49,7 +52,24 @@ export function CollectionView(): JSX.Element {
 
       <CollectionFilters />
 
-      <Stack direction="row" sx={{ justifyContent: "flex-end", mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: "flex-end", alignItems: "center", gap: 2, mb: 2 }}>
+        {/* The table sorts by its column headers; the list and image grid need a menu */}
+        {!showTable && (
+          <TextField
+            select
+            size="small"
+            label="Sort by"
+            value={params.sort}
+            onChange={(event) => void setParams({ sort: event.target.value as CollectionSort, page: 1 })}
+            sx={{ width: { xs: "100%", sm: 240 } }}
+          >
+            {(Object.keys(collectionSortLabels) as CollectionSort[]).map((sort) => (
+              <MenuItem key={sort} value={sort}>
+                {collectionSortLabels[sort]}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
         <ToggleButtonGroup
           exclusive
           size="small"

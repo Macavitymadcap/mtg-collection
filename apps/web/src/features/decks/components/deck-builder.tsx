@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { boards, labels, type Board, type CollectionEntry, type DeckCard } from "@mtg/shared";
@@ -8,6 +8,8 @@ import AddRounded from "@mui/icons-material/AddRounded";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
 import EditRounded from "@mui/icons-material/EditRounded";
+import UnfoldLessRounded from "@mui/icons-material/UnfoldLessRounded";
+import UnfoldMoreRounded from "@mui/icons-material/UnfoldMoreRounded";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
@@ -34,11 +36,43 @@ import { errorMessage } from "@/lib/errors";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { useDeck, useDeleteDeck, useSetDeckCard, useUpdateDeck } from "../queries";
 import { AddFromCollection } from "./add-from-collection";
-import { DeckBoard } from "./deck-board";
+import { DeckBoard, sectionKeys } from "./deck-board";
 import { DeckForm } from "./deck-form";
 import { DeckStats } from "./deck-stats";
 
 type MobileTab = "cards" | "stats" | "check";
+
+/**
+ * Which deck sections are collapsed, remembered per deck in this browser.
+ * Starts all open (the server can't know), then applies what was saved.
+ */
+function useCollapsedSections(deckId: number): [ReadonlySet<string>, (next: ReadonlySet<string>) => void, boolean] {
+  const storageKey = `deck-sections-collapsed:${deckId}`;
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  // False until the saved state has been applied, so that's applied without animating
+  const [restored, setRestored] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- browser storage only exists after mount
+      if (saved) setCollapsed(new Set(JSON.parse(saved) as string[]));
+    } catch {
+      // Storage unavailable or corrupt: keep everything open
+    }
+    setRestored(true);
+  }, [storageKey]);
+
+  const update = (next: ReadonlySet<string>): void => {
+    setCollapsed(next);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify([...next]));
+    } catch {
+      // Not remembered; still works for this visit
+    }
+  };
+  return [collapsed, update, restored];
+}
 
 /** Build a deck from owned cards: boards, quantities, stats and rule warnings. */
 export function DeckBuilder({ id }: { id: number }): JSX.Element {
@@ -51,6 +85,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<MobileTab>("cards");
+  const [collapsed, setCollapsed, sectionsRestored] = useCollapsedSections(id);
   const [adding, setAdding] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -89,6 +124,12 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
 
   const hasCommander = deck.cards.some((card) => card.board === "commander");
   const usedBoards = boards.filter((board) => deck.cards.some((card) => card.board === board));
+  const allSections = usedBoards.flatMap((board) =>
+    sectionKeys(
+      board,
+      deck.cards.filter((card) => card.board === board),
+    ),
+  );
 
   const addPanel = (
     <AddFromCollection
@@ -119,15 +160,32 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
         message={isMobile ? "Use + to add cards from your collection." : "Search your collection above to add some."}
       />
     ) : (
-      usedBoards.map((board) => (
-        <DeckBoard
-          key={board}
-          board={board}
-          cards={deck.cards.filter((card) => card.board === board)}
-          disabled={setCard.isPending}
-          onQuantity={changeQuantity}
-        />
-      ))
+      <>
+        <Stack direction="row" sx={{ justifyContent: "flex-end", gap: 1, mb: -2 }}>
+          <Button size="small" startIcon={<UnfoldLessRounded />} onClick={() => setCollapsed(new Set(allSections))}>
+            Collapse all
+          </Button>
+          <Button size="small" startIcon={<UnfoldMoreRounded />} onClick={() => setCollapsed(new Set())}>
+            Expand all
+          </Button>
+        </Stack>
+        {usedBoards.map((board) => (
+          <DeckBoard
+            key={board}
+            board={board}
+            cards={deck.cards.filter((card) => card.board === board)}
+            disabled={setCard.isPending}
+            onQuantity={changeQuantity}
+            collapsed={collapsed}
+            animate={sectionsRestored}
+            onToggle={(key) => {
+              const next = new Set(collapsed);
+              if (!next.delete(key)) next.add(key);
+              setCollapsed(next);
+            }}
+          />
+        ))}
+      </>
     );
 
   return (
