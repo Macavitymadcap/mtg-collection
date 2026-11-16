@@ -42,23 +42,23 @@ export function keyString(entry: EntryKey): string {
 const ALLOCATED = `(select coalesce(sum(deck_card.quantity), 0) from deck_card
   where deck_card.collectionEntryId = collection_entry.id and deck_card.board <> 'maybe')`;
 
-const sortColumns: Record<CollectionSort, [string, "asc" | "desc"][]> = {
-  name: [["card.name", "asc"]],
-  "-name": [["card.name", "desc"]],
-  createdAt: [["collection_entry.createdAt", "asc"]],
-  "-createdAt": [["collection_entry.createdAt", "desc"]],
-  manaValue: [
-    ["card.manaValue", "asc"],
-    ["card.name", "asc"],
-  ],
-  "-manaValue": [
-    ["card.manaValue", "desc"],
-    ["card.name", "asc"],
-  ],
-  setCode: [
-    ["card.setCode", "asc"],
-    ["card.collectorNumber", "asc"],
-  ],
+// Collector numbers are text ("12", "60b", "S4"): sort by their number part, then the text,
+// so 12 comes before 105
+const BY_NUMBER = "CAST(card.collectorNumber AS UNSIGNED)";
+
+/** ORDER BY clauses for each sort. Ties fall back to the entry id (see list). */
+const sortColumns: Record<CollectionSort, string[]> = {
+  name: ["card.name asc"],
+  "-name": ["card.name desc"],
+  createdAt: ["collection_entry.createdAt asc"],
+  "-createdAt": ["collection_entry.createdAt desc"],
+  manaValue: ["card.manaValue asc", "card.name asc"],
+  "-manaValue": ["card.manaValue desc", "card.name asc"],
+  setCode: ["card.setCode asc", `${BY_NUMBER} asc`, "card.collectorNumber asc"],
+  "-setCode": ["card.setCode desc", `${BY_NUMBER} desc`, "card.collectorNumber desc"],
+  // Entries without a recorded price go last either way
+  price: ["collection_entry.purchasePrice is null", "collection_entry.purchasePrice asc", "card.name asc"],
+  "-price": ["collection_entry.purchasePrice is null", "collection_entry.purchasePrice desc", "card.name asc"],
 };
 
 type JoinedRow = EntryRow & { allocated: number } & Record<`card_${keyof Card}`, unknown>;
@@ -117,7 +117,8 @@ export class CollectionRepository {
     if (filter.availableOnly) query.whereRaw(`collection_entry.quantity - (${ALLOCATED}) > 0`);
 
     const countQuery = query.clone().clearSelect().clearOrder().count({ count: "*" }).first();
-    for (const [column, direction] of sortColumns[sort]) query.orderBy(column, direction);
+    // Fixed SQL from the map above, never user input
+    query.orderByRaw(sortColumns[sort].join(", "));
     query
       .orderBy("collection_entry.id", "asc")
       .limit(page.limit)

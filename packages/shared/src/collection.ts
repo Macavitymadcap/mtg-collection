@@ -114,8 +114,25 @@ export const collectionSorts = [
   "manaValue",
   "-manaValue",
   "setCode",
+  "-setCode",
+  "price",
+  "-price",
 ] as const;
 export type CollectionSort = (typeof collectionSorts)[number];
+
+/** What each sort is called in the UI, in the order to offer them. */
+export const collectionSortLabels: Record<CollectionSort, string> = {
+  name: "Name (A–Z)",
+  "-name": "Name (Z–A)",
+  "-createdAt": "Newest first",
+  createdAt: "Oldest first",
+  manaValue: "Mana value (low–high)",
+  "-manaValue": "Mana value (high–low)",
+  setCode: "Printing (set, then number)",
+  "-setCode": "Printing (reversed)",
+  price: "Price paid (low–high)",
+  "-price": "Price paid (high–low)",
+};
 
 /** Filters for listing the collection. */
 export interface CollectionFilter {
