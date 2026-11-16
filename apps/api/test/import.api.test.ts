@@ -30,9 +30,9 @@ function row(
   return `old cards,binder,${name},EOC,Set,1,normal,common,${quantity},1,${id},${price},false,false,false,${condition},en,false,GBP,${added}`;
 }
 
-function post(lines: string[], dryRun?: boolean) {
+function post(lines: string[], dryRun = false) {
   return request(app)
-    .post(`/api/import/manabox${dryRun ? "?dryRun=true" : ""}`)
+    .post(`/api/import/manabox?dryRun=${dryRun}`)
     .set(auth())
     .send({ csv: [HEADER, ...lines].join("\n") });
 }

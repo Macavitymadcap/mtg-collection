@@ -66,11 +66,12 @@ describe("MtgjsonClient", () => {
 
     const deck = await mtgjson.get("ScrappySurvivors_PIP");
 
-    expect(deck?.cards.map((c) => `${c.board}:${c.name}:${c.finish}:${c.scryfallId ? "id" : "no-id"}`)).toEqual([
-      "commander:Dogmeat, Ever Loyal:foil:id",
-      "main:Sol Ring:nonfoil:id",
-      "main:Etched Thing:etched:id",
-      "main:Odd:nonfoil:no-id",
+    const withId = expect.any(String) as string;
+    expect(deck?.cards).toMatchObject([
+      { board: "commander", name: "Dogmeat, Ever Loyal", finish: "foil", scryfallId: withId },
+      { board: "main", name: "Sol Ring", finish: "nonfoil", scryfallId: withId },
+      { board: "main", name: "Etched Thing", finish: "etched", scryfallId: withId },
+      { board: "main", name: "Odd", finish: "nonfoil", scryfallId: null },
     ]);
   });
 

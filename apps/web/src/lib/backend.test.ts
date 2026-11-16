@@ -10,14 +10,15 @@ const API = "http://api.test/api";
 
 describe("forward", () => {
   it("calls the API with a short-lived service token and passes the response back", async () => {
-    let seen: { url: string; auth: string | null; correlation: string | null } | undefined;
+    type Seen = { url: string; auth: string | null; correlation: string | null };
+    const seen: Seen[] = [];
     server.use(
       http.get(`${API}/collection`, ({ request }) => {
-        seen = {
+        seen.push({
           url: request.url,
           auth: request.headers.get("authorization"),
           correlation: request.headers.get("x-correlation-id"),
-        };
+        });
         return HttpResponse.json({ count: 1 }, { status: 200 });
       }),
     );
@@ -31,12 +32,18 @@ describe("forward", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ count: 1 });
-    expect(seen?.url).toBe(`${API}/collection?search=bolt&page=2`);
-    expect(seen?.correlation).toBe("c-1");
+    expect(seen).toEqual([
+      {
+        url: `${API}/collection?search=bolt&page=2`,
+        correlation: "c-1",
+        auth: expect.stringMatching(/^Bearer /) as string,
+      },
+    ]);
 
-    const claims = jwt.verify(seen?.auth?.replace("Bearer ", "") ?? "", "test-secret-0123456789") as jwt.JwtPayload;
+    const [{ auth }] = seen as [Seen];
+    const claims = jwt.verify(String(auth).replace("Bearer ", ""), "test-secret-0123456789") as jwt.JwtPayload;
     expect(claims).toMatchObject({ sub: "web-bff", scope: "cards:read cards:write data:admin" });
-    expect((claims.exp ?? 0) - (claims.iat ?? 0)).toBe(300);
+    expect(Number(claims.exp) - Number(claims.iat)).toBe(300);
   });
 
   it("rejects bodies that fail the schema without calling the API", async () => {

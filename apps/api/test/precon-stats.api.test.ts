@@ -63,7 +63,7 @@ afterAll(() => db.destroy());
 
 function importPrecon(body: Record<string, unknown>, dryRun = false) {
   return request(app)
-    .post(`/api/import/precon${dryRun ? "?dryRun=true" : ""}`)
+    .post(`/api/import/precon?dryRun=${dryRun}`)
     .set(auth())
     .send({ fileName: "ScrappySurvivors_PIP", createDeck: true, ...body });
 }
