@@ -10,6 +10,19 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
     open-pull-requests-limit: 5
+    ignore:
+      # Next's ESLint plugins (react, jsx-a11y, import) don't support ESLint 10 yet;
+      # eslint and @eslint/js must stay on the same major
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: "@eslint/js"
+        update-types: [version-update:semver-major]
+      # typescript-eslint supports TypeScript below 6.1 only; stay on 6.0.x until it supports more
+      - dependency-name: typescript
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      # Matches the Node version in .nvmrc
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
