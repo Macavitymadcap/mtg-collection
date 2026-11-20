@@ -17,7 +17,8 @@
     "lint": "eslint --max-warnings 0 .",
     "db:export": "tsx --env-file=.env src/scripts/db-export.ts",
     "db:import": "tsx --env-file=.env src/scripts/db-import.ts",
-    "test:coverage": "tsoa spec-and-routes && vitest run --coverage"
+    "test:coverage": "tsoa spec-and-routes && vitest run --coverage",
+    "db:migrate:deploy": "tsx src/db/migrate.ts latest"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

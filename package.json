@@ -4,7 +4,8 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "infra"
   ],
   "scripts": {
     "dev": "concurrently -k -n shared,api,web -c blue,green,magenta \"npm run dev -w @mtg/shared\" \"npm run dev -w @mtg/api\" \"npm run dev -w @mtg/web\"",

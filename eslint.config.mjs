@@ -1,4 +1,4 @@
-// ESLint for the Node workspaces (packages/shared, apps/api).
+// ESLint for the Node workspaces (packages/shared, apps/api, infra).
 // apps/web has its own config, built on Next's.
 import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
@@ -16,7 +16,7 @@ export default defineConfig([
       globals: globals.node,
       parserOptions: {
         // Type information for the type-aware rules. These tsconfigs include tests and config files too.
-        project: ["./packages/shared/tsconfig.check.json", "./apps/api/tsconfig.check.json"],
+        project: ["./packages/shared/tsconfig.check.json", "./apps/api/tsconfig.check.json", "./infra/tsconfig.json"],
         tsconfigRootDir: import.meta.dirname,
       },
     },
