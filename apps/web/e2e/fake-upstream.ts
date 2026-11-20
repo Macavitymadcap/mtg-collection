@@ -24,8 +24,8 @@ function toScryfall(card: Card) {
     cmc: card.manaValue,
     type_line: card.typeLine,
     oracle_text: card.oracleText ?? "",
-    colors: [...card.colors],
-    color_identity: [...card.colorIdentity],
+    colors: [...card.colours],
+    color_identity: [...card.colourIdentity],
     layout: card.layout,
     scryfall_uri: card.scryfallUri,
   };

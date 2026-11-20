@@ -3,15 +3,15 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { theme } from "@/theme/theme";
-import { ColorModeToggle } from "./color-mode-toggle";
+import { ColourModeToggle } from "./colour-mode-toggle";
 
-describe("ColorModeToggle", () => {
+describe("ColourModeToggle", () => {
   beforeEach(() => localStorage.clear());
 
   it("follows the device by default, then cycles light → dark → device, remembering the choice", async () => {
     render(
       <ThemeProvider theme={theme}>
-        <ColorModeToggle />
+        <ColourModeToggle />
       </ThemeProvider>,
     );
 

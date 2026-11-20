@@ -40,7 +40,7 @@ export function useManaboxImport(): UseMutationResult<ImportSummary, Error, Impo
 export function usePrecons(search: string): UseQueryResult<PreconSummary[]> {
   return useQuery({
     queryKey: ["precons", search],
-    queryFn: () => api<PreconSummary[]>("/catalog/precons", { params: { search, limit: 50 } }),
+    queryFn: () => api<PreconSummary[]>("/catalogue/precons", { params: { search, limit: 50 } }),
     staleTime: 60 * 60 * 1000,
     placeholderData: keepPreviousData,
   });

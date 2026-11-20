@@ -2,14 +2,14 @@ import type { Knex } from "knex";
 import request from "supertest";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, makeCard, resetDb } from "./helpers.js";
 
 const furnace = makeCard({ name: "Great Furnace" });
 const moor = makeCard({ name: "Barren Moor" });
-container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(new FakeCatalog([furnace, moor]));
+container.rebind<CardCatalogue>(TYPES.CardCatalogue).toConstantValue(new FakeCatalogue([furnace, moor]));
 
 const app = createApp();
 const db = container.get<Knex>(TYPES.Knex);

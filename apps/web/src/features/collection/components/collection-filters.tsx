@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
-import { colors as wubrg, finishes, labels, rarities, type Finish, type Rarity } from "@mtg/shared";
+import { colours as wubrg, finishes, labels, rarities, type Finish, type Rarity } from "@mtg/shared";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import TuneRounded from "@mui/icons-material/TuneRounded";
 import Badge from "@mui/material/Badge";
@@ -21,7 +21,14 @@ import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { useCollectionParams } from "../use-collection-params";
 
-const colorNames: Record<string, string> = { W: "White", U: "Blue", B: "Black", R: "Red", G: "Green", C: "Colourless" };
+const colourNames: Record<string, string> = {
+  W: "White",
+  U: "Blue",
+  B: "Black",
+  R: "Red",
+  G: "Green",
+  C: "Colourless",
+};
 
 /** Search and filter controls for the collection. Everything is stored in the URL. */
 export function CollectionFilters(): JSX.Element {
@@ -41,18 +48,18 @@ export function CollectionFilters(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to the debounced text
   }, [debouncedType]);
 
-  const selectedColors = params.colors ? params.colors.split("") : [];
-  const onColors = (_event: unknown, next: string[]): void => {
+  const selectedColours = params.colours ? params.colours.split("") : [];
+  const onColours = (_event: unknown, next: string[]): void => {
     // Colourless can't be combined with colours: whichever was picked last wins
-    const added = next.find((c) => !selectedColors.includes(c));
+    const added = next.find((c) => !selectedColours.includes(c));
     const value = added === "C" ? ["C"] : next.filter((c) => c !== "C");
     const ordered = wubrg.filter((c) => value.includes(c)).join("") || (value.includes("C") ? "C" : "");
-    setFilters({ colors: ordered || null });
+    setFilters({ colours: ordered || null });
   };
 
   const hasFilters = Boolean(
     params.search ||
-    params.colors ||
+    params.colours ||
     params.type ||
     params.setCode ||
     params.rarity ||
@@ -61,7 +68,7 @@ export function CollectionFilters(): JSX.Element {
   );
   // Filters other than the always-visible search, for the badge on phones
   const activeCount = [
-    params.colors,
+    params.colours,
     params.type,
     params.setCode,
     params.rarity,
@@ -76,7 +83,7 @@ export function CollectionFilters(): JSX.Element {
     setType("");
     setFilters({
       search: null,
-      colors: null,
+      colours: null,
       type: null,
       setCode: null,
       rarity: null,
@@ -148,10 +155,10 @@ export function CollectionFilters(): JSX.Element {
 
   const toggles = (
     <>
-      <ToggleButtonGroup value={selectedColors} onChange={onColors} size="small" aria-label="Colours">
-        {[...wubrg, "C"].map((color) => (
-          <ToggleButton key={color} value={color} aria-label={colorNames[color]} title={colorNames[color]}>
-            <Image src={symbolUrl(color)} alt="" width={20} height={20} />
+      <ToggleButtonGroup value={selectedColours} onChange={onColours} size="small" aria-label="Colours">
+        {[...wubrg, "C"].map((colour) => (
+          <ToggleButton key={colour} value={colour} aria-label={colourNames[colour]} title={colourNames[colour]}>
+            <Image src={symbolUrl(colour)} alt="" width={20} height={20} />
           </ToggleButton>
         ))}
       </ToggleButtonGroup>

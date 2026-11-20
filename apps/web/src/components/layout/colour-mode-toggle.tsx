@@ -13,7 +13,7 @@ const labels = { system: "Theme: follows your device", light: "Theme: light", da
 const icons = { system: SettingsBrightnessRounded, light: LightModeRounded, dark: DarkModeRounded };
 
 /** Cycles the colour scheme: device setting → light → dark. MUI remembers the choice. */
-export function ColorModeToggle(): JSX.Element | null {
+export function ColourModeToggle(): JSX.Element | null {
   const { mode, setMode } = useColorScheme();
   // Unknown until mounted in the browser; render nothing rather than guess
   if (!mode) return null;

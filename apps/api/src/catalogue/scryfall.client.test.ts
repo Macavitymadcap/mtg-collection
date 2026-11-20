@@ -142,7 +142,7 @@ describe("ScryfallClient", () => {
     expect(card).toMatchObject({
       manaCost: "{U}",
       oracleText: "Look at the top card… // Flying",
-      colors: "U",
+      colours: "U",
       imageSmall: "https://cards.scryfall.io/small/front.jpg",
       isBasicLand: false,
     });

@@ -3,13 +3,13 @@ import { Container } from "inversify";
 import type { Knex } from "knex";
 import { createAuth, type Auth } from "./auth/better-auth.js";
 import { testSignInPlugin } from "./auth/test-sign-in.js";
-import type { CardCatalog } from "./catalog/card-catalog.js";
-import { CardRepository } from "./catalog/card.repository.js";
-import { CardService } from "./catalog/card.service.js";
-import { CatalogController } from "./catalog/catalog.controller.js";
-import { MtgjsonClient } from "./catalog/mtgjson.client.js";
-import type { PreconSource } from "./catalog/precon-source.js";
-import { ScryfallClient } from "./catalog/scryfall.client.js";
+import type { CardCatalogue } from "./catalogue/card-catalogue.js";
+import { CardRepository } from "./catalogue/card.repository.js";
+import { CardService } from "./catalogue/card.service.js";
+import { CatalogueController } from "./catalogue/catalogue.controller.js";
+import { MtgjsonClient } from "./catalogue/mtgjson.client.js";
+import type { PreconSource } from "./catalogue/precon-source.js";
+import { ScryfallClient } from "./catalogue/scryfall.client.js";
 import { CollectionController } from "./collection/collection.controller.js";
 import { CollectionRepository } from "./collection/collection.repository.js";
 import { CollectionService } from "./collection/collection.service.js";
@@ -37,7 +37,7 @@ container
   .bind<Auth>(TYPES.Auth)
   .toConstantValue(createAuth(config, config.NODE_ENV === "test" ? [testSignInPlugin()] : []));
 container
-  .bind<CardCatalog>(TYPES.CardCatalog)
+  .bind<CardCatalogue>(TYPES.CardCatalogue)
   .toConstantValue(new ScryfallClient({ baseUrl: config.SCRYFALL_BASE_URL, userAgent: config.SCRYFALL_USER_AGENT }));
 
 container
@@ -54,7 +54,7 @@ container.bind(DeckRepository).toSelf();
 container.bind(DeckService).toSelf();
 
 container.bind(HealthController).toSelf();
-container.bind(CatalogController).toSelf();
+container.bind(CatalogueController).toSelf();
 container.bind(CollectionController).toSelf();
 container.bind(ImportController).toSelf();
 container.bind(DeckController).toSelf();

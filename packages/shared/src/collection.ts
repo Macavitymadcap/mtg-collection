@@ -139,7 +139,7 @@ export interface CollectionFilter {
   /** Part of the card name. */
   search?: string;
   /** Colours the card must include, e.g. "WU". "C" means colourless. */
-  colors?: string;
+  colours?: string;
   /** Part of the type line, e.g. "Creature". */
   type?: string;
   setCode?: string;

@@ -1,7 +1,7 @@
 import type { Board, Format, ImportRowError, ImportSummary, PreconImportRequest } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { CardService } from "../catalog/card.service.js";
-import type { PreconDeck, PreconSource } from "../catalog/precon-source.js";
+import { CardService } from "../catalogue/card.service.js";
+import type { PreconDeck, PreconSource } from "../catalogue/precon-source.js";
 import { MAX_QUANTITY } from "../collection/collection.service.js";
 import { CollectionRepository, keyString, type NewEntryRow } from "../collection/collection.repository.js";
 import { BadRequest, NotFound } from "../core/errors.js";

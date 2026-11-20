@@ -1,7 +1,7 @@
 import type { Card, CollectionEntry, CollectionFilter, CollectionSort, CopyFlags, DeckUsage } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
-import { cardColumns } from "../catalog/card.repository.js";
+import { cardColumns } from "../catalogue/card.repository.js";
 import type { PageRequest } from "../core/pagination.js";
 import { TYPES } from "../types.js";
 
@@ -111,9 +111,9 @@ export class CollectionRepository {
     if (filter.setCode) query.where("card.setCode", filter.setCode.toLowerCase());
     if (filter.rarity) query.where("card.rarity", filter.rarity);
     if (filter.finish) query.where("collection_entry.finish", filter.finish);
-    if (filter.colors === "C") query.where("card.colors", "");
+    if (filter.colours === "C") query.where("card.colours", "");
     // Not whereLike: on MySQL it adds COLLATE utf8_bin, which fails on utf8mb4 columns
-    else if (filter.colors) for (const color of filter.colors) query.where("card.colors", "like", `%${color}%`);
+    else if (filter.colours) for (const colour of filter.colours) query.where("card.colours", "like", `%${colour}%`);
     if (filter.availableOnly) query.whereRaw(`collection_entry.quantity - (${ALLOCATED}) > 0`);
 
     const countQuery = query.clone().clearSelect().clearOrder().count({ count: "*" }).first();

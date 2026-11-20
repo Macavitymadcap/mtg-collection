@@ -20,17 +20,17 @@ describe("CollectionFilters", () => {
     await user.click(screen.getByRole("button", { name: "Green" }));
     await user.click(screen.getByRole("button", { name: "White" }));
 
-    expect(last()).toBe("colors=WG");
+    expect(last()).toBe("colours=WG");
   });
 
   it("treats colourless as excluding colours, and the reverse", async () => {
-    const { user, last } = setup("?colors=WG");
+    const { user, last } = setup("?colours=WG");
 
     await user.click(screen.getByRole("button", { name: "Colourless" }));
-    expect(last()).toBe("colors=C");
+    expect(last()).toBe("colours=C");
 
     await user.click(screen.getByRole("button", { name: "Red" }));
-    expect(last()).toBe("colors=R");
+    expect(last()).toBe("colours=R");
   });
 
   it("puts the search in the URL once typing pauses", async () => {
@@ -40,7 +40,7 @@ describe("CollectionFilters", () => {
   });
 
   it("filters free copies only, and clears every filter", async () => {
-    const { user, last } = setup("?search=bolt&rarity=rare&colors=R");
+    const { user, last } = setup("?search=bolt&rarity=rare&colours=R");
 
     await user.click(screen.getByLabelText("Free copies only"));
     expect(last()).toContain("availableOnly=true");
@@ -54,7 +54,7 @@ describe("CollectionFilters", () => {
 describe("CollectionFilters on a phone", () => {
   it("keeps search visible and puts the other filters in a sheet, counting active ones", async () => {
     setViewportWidth(PHONE);
-    const { user, last } = setup("?colors=R&rarity=rare");
+    const { user, last } = setup("?colours=R&rarity=rare");
 
     expect(screen.getByLabelText("Search by name")).toBeInTheDocument();
     expect(screen.queryByLabelText("Type")).not.toBeInTheDocument();
@@ -64,7 +64,7 @@ describe("CollectionFilters on a phone", () => {
     await user.click(filters);
     const sheet = screen.getByRole("group", { name: "Filters" });
     await user.click(within(sheet).getByRole("button", { name: "Green" }));
-    expect(last()).toBe("colors=RG&rarity=rare");
+    expect(last()).toBe("colours=RG&rarity=rare");
 
     await user.click(within(sheet).getByRole("button", { name: "Done" }));
     await vi.waitFor(() => expect(screen.queryByRole("group", { name: "Filters" })).not.toBeInTheDocument());

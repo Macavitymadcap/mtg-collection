@@ -2,8 +2,14 @@ import type { Card } from "@mtg/shared";
 import { isResponseError, isValidationError, up } from "up-fetch";
 import { BadGateway } from "../core/errors.js";
 import { logger } from "../core/logger.js";
-import type { CardCatalog, CardLookup } from "./card-catalog.js";
-import { cardCollectionSchema, cardListSchema, catalogSchema, scryfallCardSchema, toCard } from "./scryfall.schemas.js";
+import type { CardCatalogue, CardLookup } from "./card-catalogue.js";
+import {
+  cardCollectionSchema,
+  cardListSchema,
+  catalogueSchema,
+  scryfallCardSchema,
+  toCard,
+} from "./scryfall.schemas.js";
 import { Throttle } from "./throttle.js";
 
 export interface ScryfallOptions {
@@ -28,7 +34,7 @@ const AUTOCOMPLETE_CACHE_SIZE = 500;
  * identifying headers, rate limits, caching and response validation.
  * https://scryfall.com/docs/api
  */
-export class ScryfallClient implements CardCatalog {
+export class ScryfallClient implements CardCatalogue {
   private readonly http;
   private readonly throttle: Throttle;
   private readonly collectionThrottle: Throttle;
@@ -55,7 +61,7 @@ export class ScryfallClient implements CardCatalog {
     if (cached && cached.expires > Date.now()) return cached.names;
 
     const { data } = await this.request(() =>
-      this.http("/cards/autocomplete", { params: { q: key }, schema: catalogSchema }),
+      this.http("/cards/autocomplete", { params: { q: key }, schema: catalogueSchema }),
     );
 
     if (this.autocompleteCache.size >= AUTOCOMPLETE_CACHE_SIZE) {

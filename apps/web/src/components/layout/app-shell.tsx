@@ -18,7 +18,7 @@ import Typography from "@mui/material/Typography";
 import { useCanEdit } from "@/features/auth/queries";
 import { SignInError } from "@/features/auth/sign-in-error";
 import { UserMenu } from "@/features/auth/user-menu";
-import { ColorModeToggle } from "./color-mode-toggle";
+import { ColourModeToggle } from "./colour-mode-toggle";
 import { activeHref, mobileNavItems as allMobileNavItems, navItems as allNavItems, visibleItems } from "./nav-items";
 
 const DRAWER_WIDTH = 220;
@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
           <Typography variant="h6" component="span" sx={{ fontWeight: 700, flexGrow: 1 }}>
             MTG Collection
           </Typography>
-          <ColorModeToggle />
+          <ColourModeToggle />
           <UserMenu />
           {/* Reads the query string, which needs a Suspense boundary */}
           <Suspense>

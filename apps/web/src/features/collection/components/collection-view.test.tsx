@@ -73,9 +73,9 @@ describe("CollectionView", () => {
 
   it("asks the API for the filters and sort in the URL", async () => {
     const queries = fakeCollection();
-    setup("?search=bolt&colors=R&sort=-manaValue&page=2&limit=25");
+    setup("?search=bolt&colours=R&sort=-manaValue&page=2&limit=25");
     await screen.findByRole("row", { name: /Lightning Bolt/ });
-    expect(queries[0]).toBe("page=2&limit=25&sort=-manaValue&search=bolt&colors=R");
+    expect(queries[0]).toBe("page=2&limit=25&sort=-manaValue&search=bolt&colours=R");
   });
 
   it("sorts by clicking a column header", async () => {

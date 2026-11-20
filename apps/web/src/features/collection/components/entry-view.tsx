@@ -29,7 +29,7 @@ import { useSnackbar } from "@/components/feedback/snackbar-provider";
 import { ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
 import { useCanEdit } from "@/features/auth/queries";
-import { PrintingPicker } from "@/features/catalog/printing-picker";
+import { PrintingPicker } from "@/features/catalogue/printing-picker";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, printingLabel } from "@/lib/format";
 import { useCollectionEntry, useDeleteEntry, useUpdateEntry } from "../queries";

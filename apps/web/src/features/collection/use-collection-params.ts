@@ -7,7 +7,7 @@ export const collectionViews = ["table", "grid"] as const;
 /** The collection page's state, kept in the URL so it survives refreshes and can be bookmarked. */
 const parsers = {
   search: parseAsString,
-  colors: parseAsString,
+  colours: parseAsString,
   type: parseAsString,
   setCode: parseAsString,
   rarity: parseAsStringLiteral(rarities),
@@ -40,7 +40,7 @@ export function toCollectionQuery(params: CollectionParams): CollectionQuery {
     limit: params.limit,
     sort: params.sort,
     search: params.search ?? undefined,
-    colors: params.colors ?? undefined,
+    colours: params.colours ?? undefined,
     type: params.type ?? undefined,
     setCode: params.setCode ?? undefined,
     rarity: params.rarity ?? undefined,

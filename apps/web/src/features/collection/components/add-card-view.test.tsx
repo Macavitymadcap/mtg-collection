@@ -13,8 +13,8 @@ describe("AddCardView", () => {
   it("searches, picks a printing and adds copies", async () => {
     let body: unknown;
     server.use(
-      http.get("*/api/catalog/autocomplete", () => HttpResponse.json(["Great Furnace"])),
-      http.get("*/api/catalog/printings", () => HttpResponse.json([mirrodin, planechase])),
+      http.get("*/api/catalogue/autocomplete", () => HttpResponse.json(["Great Furnace"])),
+      http.get("*/api/catalogue/printings", () => HttpResponse.json([mirrodin, planechase])),
       http.post("*/api/collection", async ({ request }) => {
         body = await request.json();
         return HttpResponse.json(makeEntry({ id: 3, card: planechase, quantity: 2 }), { status: 201 });
@@ -38,8 +38,8 @@ describe("AddCardView", () => {
 
   it("says when copies were added to an existing entry", async () => {
     server.use(
-      http.get("*/api/catalog/autocomplete", () => HttpResponse.json(["Great Furnace"])),
-      http.get("*/api/catalog/printings", () => HttpResponse.json([mirrodin])),
+      http.get("*/api/catalogue/autocomplete", () => HttpResponse.json(["Great Furnace"])),
+      http.get("*/api/catalogue/printings", () => HttpResponse.json([mirrodin])),
       http.post("*/api/collection", () =>
         HttpResponse.json(makeEntry({ card: mirrodin, quantity: 4 }), { status: 200 }),
       ),
@@ -56,7 +56,7 @@ describe("AddCardView", () => {
 
   it("asks for 2 letters before searching", async () => {
     const autocomplete = vi.fn(() => HttpResponse.json([]));
-    server.use(http.get("*/api/catalog/autocomplete", autocomplete));
+    server.use(http.get("*/api/catalogue/autocomplete", autocomplete));
     const { user } = renderWithProviders(<AddCardView />);
 
     await user.type(screen.getByLabelText("Card name"), "g");

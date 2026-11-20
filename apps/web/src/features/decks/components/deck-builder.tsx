@@ -28,7 +28,7 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
-import { ColorPips } from "@/components/cards/color-pips";
+import { ColourPips } from "@/components/cards/colour-pips";
 import { useSnackbar } from "@/components/feedback/snackbar-provider";
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
@@ -222,7 +222,7 @@ export function DeckBuilder({ id }: { id: number }): JSX.Element {
       <Stack direction="row" sx={{ gap: 2, alignItems: "center", mb: 4, flexWrap: "wrap" }}>
         <Chip label={labels.format[deck.format]} />
         <Chip variant="outlined" label={`${deck.cardCount} cards`} />
-        {deck.cards.length > 0 && <ColorPips colors={deck.colorIdentity} />}
+        {deck.cards.length > 0 && <ColourPips colours={deck.colourIdentity} />}
       </Stack>
 
       {isMobile ? (

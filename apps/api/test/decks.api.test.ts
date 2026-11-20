@@ -2,10 +2,10 @@ import type { Knex } from "knex";
 import request from "supertest";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, makeCard, resetDb } from "./helpers.js";
 
 const krenko = makeCard({
   name: "Krenko",
@@ -14,8 +14,8 @@ const krenko = makeCard({
   imageNormal: "https://cards.scryfall.io/normal/front/k/r/krenko.jpg",
 });
 const bolt = makeCard({ name: "Lightning Bolt", manaValue: 1 });
-const counterspell = makeCard({ name: "Counterspell", colors: "U", colorIdentity: "U" });
-container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(new FakeCatalog([krenko, bolt, counterspell]));
+const counterspell = makeCard({ name: "Counterspell", colours: "U", colourIdentity: "U" });
+container.rebind<CardCatalogue>(TYPES.CardCatalogue).toConstantValue(new FakeCatalogue([krenko, bolt, counterspell]));
 
 const app = createApp();
 const db = container.get<Knex>(TYPES.Knex);
@@ -69,7 +69,7 @@ describe("decks", () => {
     await setCard(deckId, await addEntry(bolt.id, 4), 1).expect(200);
     const response = await setCard(deckId, await addEntry(counterspell.id), 1).expect(200);
 
-    expect(response.body).toMatchObject({ colorIdentity: "R", cardCount: 3 });
+    expect(response.body).toMatchObject({ colourIdentity: "R", cardCount: 3 });
     expect(
       response.body.cards.map(
         (c: { board: string; entry: { card: { name: string } } }) => `${c.board}:${c.entry.card.name}`,
@@ -80,7 +80,7 @@ describe("decks", () => {
 
     const list = await request(app).get("/api/decks").set(auth()).expect(200);
     expect(list.body).toEqual([
-      expect.objectContaining({ id: deckId, cardCount: 3, warningCount: 2, colorIdentity: "R" }),
+      expect.objectContaining({ id: deckId, cardCount: 3, warningCount: 2, colourIdentity: "R" }),
     ]);
   });
 

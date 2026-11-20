@@ -22,7 +22,7 @@ export interface DeckStats {
   /** Mana value (0–7+) to count, lands excluded. */
   manaCurve: Record<string, number>;
   /** Cards per colour, plus "C" for colourless. */
-  colors: Record<string, number>;
+  colours: Record<string, number>;
   /** Cards per primary type (Creature, Instant, Land …). */
   types: Record<string, number>;
 }
@@ -33,7 +33,7 @@ export interface DeckSummary {
   format: Format;
   description: string | null;
   /** WUBRG order. */
-  colorIdentity: string;
+  colourIdentity: string;
   /** Art for the deck's tile: an art-crop image of its commander or key card, or null with no cards. */
   coverArt: string | null;
   cardCount: number;

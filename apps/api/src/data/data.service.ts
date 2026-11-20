@@ -10,7 +10,7 @@ import {
 } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
-import { cardColumns } from "../catalog/card.repository.js";
+import { cardColumns } from "../catalogue/card.repository.js";
 import { BadRequest } from "../core/errors.js";
 import { TransactionManager } from "../core/transaction.js";
 import type { EntryRow } from "../collection/collection.repository.js";

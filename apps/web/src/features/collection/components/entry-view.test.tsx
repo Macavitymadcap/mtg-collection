@@ -76,7 +76,7 @@ describe("EntryView", () => {
     let body: unknown;
     server.use(
       http.get("*/api/collection/5", () => HttpResponse.json(detail())),
-      http.get("*/api/catalog/printings", () => HttpResponse.json([furnace, reprint])),
+      http.get("*/api/catalogue/printings", () => HttpResponse.json([furnace, reprint])),
       http.patch("*/api/collection/5", async ({ request }) => {
         body = await request.json();
         return HttpResponse.json(makeEntry({ id: 9, card: reprint, quantity: 5 }));

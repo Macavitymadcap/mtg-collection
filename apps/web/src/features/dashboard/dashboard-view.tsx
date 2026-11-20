@@ -18,7 +18,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { CardImage } from "@/components/cards/card-image";
-import { ColorPips } from "@/components/cards/color-pips";
+import { ColourPips } from "@/components/cards/colour-pips";
 import { PageHeader } from "@/components/layout/page-header";
 import { useCanEdit } from "@/features/auth/queries";
 import { useDecks } from "@/features/decks/queries";
@@ -187,7 +187,7 @@ export function DashboardView(): JSX.Element {
                         primary={deck.name}
                         secondary={`${labels.format[deck.format]} · ${deck.cardCount} cards${deck.warningCount ? ` · ${deck.warningCount} to check` : ""}`}
                       />
-                      <ColorPips colors={deck.colorIdentity} size={16} />
+                      <ColourPips colours={deck.colourIdentity} size={16} />
                     </ListItemButton>
                   </ListItem>
                 ))}

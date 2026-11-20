@@ -3,7 +3,7 @@ import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
 import { NotFound } from "../core/errors.js";
 import { TYPES } from "../types.js";
-import type { CardCatalog } from "./card-catalog.js";
+import type { CardCatalogue } from "./card-catalogue.js";
 import { CardRepository } from "./card.repository.js";
 
 export interface ResolvedCards {
@@ -19,7 +19,7 @@ export interface ResolvedCards {
 export class CardService {
   constructor(
     @inject(CardRepository) private readonly cards: CardRepository,
-    @inject(TYPES.CardCatalog) private readonly catalog: CardCatalog,
+    @inject(TYPES.CardCatalogue) private readonly catalogue: CardCatalogue,
   ) {}
 
   /**
@@ -34,7 +34,7 @@ export class CardService {
     const missing = wanted.filter((id) => !cards.has(id));
     if (!missing.length) return { cards, fetched: [], notFound: [] };
 
-    const { found, notFound } = await this.catalog.byIds(missing);
+    const { found, notFound } = await this.catalogue.byIds(missing);
     for (const card of found) cards.set(card.id, card);
     return { cards, fetched: found, notFound };
   }

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CardImage } from "./card-image";
-import { ColorPips } from "./color-pips";
+import { ColourPips } from "./colour-pips";
 import { ManaSymbols, symbolUrl } from "./mana-symbols";
 
 describe("ManaSymbols", () => {
@@ -28,11 +28,11 @@ describe("ManaSymbols", () => {
   });
 });
 
-describe("ColorPips", () => {
+describe("ColourPips", () => {
   it("shows one pip per colour, or colourless", () => {
-    const { rerender } = render(<ColorPips colors="BG" />);
+    const { rerender } = render(<ColourPips colours="BG" />);
     expect(screen.getAllByRole("img").map((img) => img.getAttribute("alt"))).toEqual(["B", "G"]);
-    rerender(<ColorPips colors="" />);
+    rerender(<ColourPips colours="" />);
     expect(screen.getByRole("img")).toHaveAttribute("alt", "C");
   });
 });

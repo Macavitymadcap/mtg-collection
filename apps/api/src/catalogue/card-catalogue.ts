@@ -7,7 +7,7 @@ export interface CardLookup {
 }
 
 /** Where card data comes from. Scryfall in the app; a fake in tests. */
-export interface CardCatalog {
+export interface CardCatalogue {
   /** Card names starting with or containing `query`. */
   autocomplete(query: string): Promise<string[]>;
   /** Every printing of an exact card name, oldest first. */

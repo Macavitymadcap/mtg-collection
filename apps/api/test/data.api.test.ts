@@ -3,16 +3,18 @@ import type { Knex } from "knex";
 import request from "supertest";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, makeCard, resetDb } from "./helpers.js";
 
 const goblin = makeCard({ name: "Krenko", typeLine: "Legendary Creature — Goblin" });
 const bolt = makeCard({ name: "Lightning Bolt" });
-const mountain = makeCard({ name: "Mountain", typeLine: "Basic Land — Mountain", isBasicLand: true, colors: "" });
+const mountain = makeCard({ name: "Mountain", typeLine: "Basic Land — Mountain", isBasicLand: true, colours: "" });
 const unused = makeCard({ name: "Looked at, never added" });
-container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(new FakeCatalog([goblin, bolt, mountain, unused]));
+container
+  .rebind<CardCatalogue>(TYPES.CardCatalogue)
+  .toConstantValue(new FakeCatalogue([goblin, bolt, mountain, unused]));
 
 const app = createApp();
 const db = container.get<Knex>(TYPES.Knex);
@@ -77,7 +79,7 @@ describe("GET /api/data/export", () => {
     expect(response.headers["content-disposition"]).toMatch(
       /^attachment; filename="mtg-collection-\d{4}-\d{2}-\d{2}\.json"$/,
     );
-    expect(file.formatVersion).toBe(1);
+    expect(file.formatVersion).toBe(2);
     expect(file.cards.map((card) => card.name).sort()).toEqual(["Krenko", "Lightning Bolt", "Mountain"]);
     expect(file.collection.map((entry) => entry.ref)).toEqual(["c1", "c2", "c3", "c4"]);
     expect(file.collection[0]).toMatchObject({ finish: "foil", signed: true, notes: "From a prerelease" });
@@ -166,7 +168,26 @@ describe("POST /api/data/import", () => {
     await request(app)
       .post("/api/data/import")
       .set(auth())
-      .send({ ...file, formatVersion: 2 })
+      .send({ ...file, formatVersion: 3 })
       .expect(400);
+  });
+
+  it("still imports version 1 files, which spell colours the American way", async () => {
+    await seed();
+    const current = await exportFile();
+    const v1 = {
+      ...current,
+      formatVersion: 1,
+      cards: current.cards.map(({ colours, colourIdentity, ...card }) => ({
+        ...card,
+        colors: colours,
+        colorIdentity: colourIdentity,
+      })),
+    };
+    await resetDb(db);
+
+    await request(app).post("/api/data/import").set(auth()).send(v1).expect(200);
+
+    expect(withoutTimestamp(await exportFile())).toEqual(withoutTimestamp(current));
   });
 });

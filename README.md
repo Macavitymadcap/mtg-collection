@@ -79,7 +79,7 @@ free copies come before copies already in other decks. Substitutions are
 listed, and if a card isn't owned in sufficient numbers nothing is written.
 
 ```bash
-curl -s 'localhost:3400/api/catalog/precons?search=scrappy' -H "Authorization: Bearer $TOKEN" | jq
+curl -s 'localhost:3400/api/catalogue/precons?search=scrappy' -H "Authorization: Bearer $TOKEN" | jq
 curl -s -X POST 'localhost:3400/api/import/precon?dryRun=true' -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' -d '{"fileName": "ScrappySurvivors_PIP", "createDeck": true}' | jq
 ```

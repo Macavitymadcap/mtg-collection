@@ -4,14 +4,14 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { testUtils, type TestHelpers } from "better-auth/plugins";
 import { createApp } from "../src/app.js";
 import { createAuth } from "../src/auth/better-auth.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
 import { config } from "../src/config.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, makeCard, resetDb } from "./helpers.js";
 
 const shock = makeCard({ name: "Shock" });
-container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(new FakeCatalog([shock]));
+container.rebind<CardCatalogue>(TYPES.CardCatalogue).toConstantValue(new FakeCatalogue([shock]));
 
 const app = createApp();
 const db = container.get<Knex>(TYPES.Knex);

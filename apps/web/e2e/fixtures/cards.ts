@@ -16,8 +16,8 @@ function card(n: number, fields: Partial<Card> & Pick<Card, "name" | "setCode" |
     manaValue: 1,
     typeLine: "Instant",
     oracleText: null,
-    colors: "R",
-    colorIdentity: "R",
+    colours: "R",
+    colourIdentity: "R",
     isBasicLand: false,
     layout: "normal",
     imageSmall: null,
@@ -59,7 +59,7 @@ export const cards = {
     manaCost: null,
     manaValue: 0,
     typeLine: "Basic Land — Mountain",
-    colors: "",
+    colours: "",
     isBasicLand: true,
   }),
   elves: card(5, {
@@ -68,8 +68,8 @@ export const cards = {
     setName: "Core Set 2019",
     manaCost: "{G}",
     typeLine: "Creature — Elf Druid",
-    colors: "G",
-    colorIdentity: "G",
+    colours: "G",
+    colourIdentity: "G",
   }),
 } satisfies Record<string, Card>;
 
@@ -97,7 +97,7 @@ export function seedCollection(): ExportFile {
     createdAt: "2026-11-01T12:00:00.000Z",
   });
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     exportedAt: "2026-11-01T12:00:00.000Z",
     cards: [cards.boltA25, cards.krenko, cards.mountain, cards.elves],
     collection: [

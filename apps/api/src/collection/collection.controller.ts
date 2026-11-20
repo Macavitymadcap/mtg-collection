@@ -42,7 +42,7 @@ export class CollectionController extends Controller {
    * @isInt limit
    * @minimum limit 1
    * @maximum limit 200
-   * @param colors Colours the card must include, in WUBRG order (e.g. "WU"), or "C" for colourless
+   * @param colours Colours the card must include, in WUBRG order (e.g. "WU"), or "C" for colourless
    */
   @Get()
   @Security("jwt", ["cards:read"])
@@ -50,7 +50,7 @@ export class CollectionController extends Controller {
     @Query() page = 1,
     @Query() limit = 50,
     @Query() search?: string,
-    @Query() colors?: string,
+    @Query() colours?: string,
     @Query() type?: string,
     @Query() setCode?: string,
     @Query() rarity?: Rarity,
@@ -58,7 +58,7 @@ export class CollectionController extends Controller {
     @Query() availableOnly?: boolean,
     @Query() sort: CollectionSort = "name",
   ): Promise<Page<CollectionEntry>> {
-    const filter = { search, colors, type, setCode, rarity, finish, availableOnly };
+    const filter = { search, colours, type, setCode, rarity, finish, availableOnly };
     const found = await this.service.list(filter, visibleSort(sort), { page, limit });
     return { ...found, results: found.results.map(redactEntry) };
   }

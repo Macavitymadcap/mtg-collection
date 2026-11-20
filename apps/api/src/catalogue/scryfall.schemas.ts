@@ -1,4 +1,4 @@
-import { colors, rarities, type Card, type Rarity } from "@mtg/shared";
+import { colours, rarities, type Card, type Rarity } from "@mtg/shared";
 import { z } from "zod";
 
 // Only the fields the app uses. Zod drops the rest.
@@ -46,11 +46,11 @@ export const cardCollectionSchema = z.object({
   not_found: z.array(z.object({ id: z.string().optional() })),
 });
 
-export const catalogSchema = z.object({ data: z.array(z.string()) });
+export const catalogueSchema = z.object({ data: z.array(z.string()) });
 
 /** Sorts colour letters into WUBRG order and drops anything else. */
-function toColorString(values: string[]): string {
-  return colors.filter((color) => values.includes(color)).join("");
+function toColourString(values: string[]): string {
+  return colours.filter((colour) => values.includes(colour)).join("");
 }
 
 function toRarity(value: string): Rarity {
@@ -87,8 +87,8 @@ export function toCard(card: ScryfallCard): Card {
     manaValue: card.cmc ?? 0,
     typeLine,
     oracleText: card.oracle_text ?? joinFaces((f) => f.oracle_text),
-    colors: toColorString(card.colors ?? front?.colors ?? []),
-    colorIdentity: toColorString(card.color_identity),
+    colours: toColourString(card.colors ?? front?.colors ?? []),
+    colourIdentity: toColourString(card.color_identity),
     isBasicLand: /\bBasic\b.*\bLand\b/.test(typeLine),
     layout: card.layout,
     imageSmall: images?.small ?? null,

@@ -231,7 +231,7 @@ OpenNext's build output and static assets through Pulumi needs checking.
 
 Most scanners read the set code and collector number printed in a card's
 bottom-left corner, then look the printing up directly (we already have
-`GET /api/catalog/cards/{set}/{number}`). **The set code has only been
+`GET /api/catalogue/cards/{set}/{number}`). **The set code has only been
 printed there since Magic 2015 (mid-2014), and collector numbers only since
 about 1998.** Most of this collection is pre-2007, so the card's **name** has
 to be the main thing read.

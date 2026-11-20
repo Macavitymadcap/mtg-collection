@@ -3,7 +3,7 @@ import type { Card } from "./card.js";
 import type { CollectionEntry } from "./collection.js";
 import type { Board } from "./constants.js";
 import type { DeckCard } from "./deck.js";
-import { artCropUrl, checkDeck, coverCard, deckColorIdentity, deckStats, primaryType } from "./rules.js";
+import { artCropUrl, checkDeck, coverCard, deckColourIdentity, deckStats, primaryType } from "./rules.js";
 
 let id = 0;
 
@@ -21,8 +21,8 @@ function card(overrides: Partial<Card> = {}): Card {
     manaValue: 2,
     typeLine: "Instant",
     oracleText: null,
-    colors: "R",
-    colorIdentity: "R",
+    colours: "R",
+    colourIdentity: "R",
     isBasicLand: false,
     layout: "normal",
     imageSmall: null,
@@ -61,8 +61,8 @@ const mountain = card({
   isBasicLand: true,
   manaCost: null,
   manaValue: 0,
-  colors: "",
-  colorIdentity: "R",
+  colours: "",
+  colourIdentity: "R",
 });
 const codes = (warnings: { code: string }[]) => warnings.map((w) => w.code);
 
@@ -103,7 +103,7 @@ describe("checkDeck: constructed", () => {
 });
 
 describe("checkDeck: commander", () => {
-  const krenko = card({ name: "Krenko", typeLine: "Legendary Creature — Goblin", colorIdentity: "R" });
+  const krenko = card({ name: "Krenko", typeLine: "Legendary Creature — Goblin", colourIdentity: "R" });
 
   it("accepts 100 singleton cards in the commander's colours", () => {
     const deck = [
@@ -125,7 +125,7 @@ describe("checkDeck: commander", () => {
   });
 
   it("flags cards outside the commander's colour identity", () => {
-    const counterspell = card({ name: "Counterspell", colorIdentity: "U", colors: "U" });
+    const counterspell = card({ name: "Counterspell", colourIdentity: "U", colours: "U" });
     const warnings = checkDeck("commander", [line(krenko, 1, "commander"), line(counterspell, 1)]);
     expect(warnings.find((w) => w.code === "colour-identity")).toMatchObject({ cardName: "Counterspell" });
   });
@@ -144,12 +144,12 @@ describe("checkDeck: ownership", () => {
 
 describe("stats and identity", () => {
   it("builds the curve, colours and types from played boards only", () => {
-    const giant = card({ typeLine: "Creature — Giant", manaValue: 8, colors: "RG", colorIdentity: "RG" });
+    const giant = card({ typeLine: "Creature — Giant", manaValue: 8, colours: "RG", colourIdentity: "RG" });
     const stats = deckStats([line(giant, 2), line(card(), 3), line(mountain, 10), line(card(), 4, "side")]);
 
     expect(stats.cardCount).toBe(15);
     expect(stats.manaCurve).toMatchObject({ "2": 3, "7+": 2, "0": 0 });
-    expect(stats.colors).toEqual({ R: 5, G: 2, C: 10 });
+    expect(stats.colours).toEqual({ R: 5, G: 2, C: 10 });
     expect(stats.types).toEqual({ Creature: 2, Instant: 3, Land: 10 });
   });
 
@@ -163,10 +163,10 @@ describe("stats and identity", () => {
   });
 
   it("uses the commander for a commander deck's identity", () => {
-    const commander = line(card({ colorIdentity: "BG" }), 1, "commander");
-    expect(deckColorIdentity("commander", [commander, line(card({ colorIdentity: "W" }), 1)])).toBe("BG");
+    const commander = line(card({ colourIdentity: "BG" }), 1, "commander");
+    expect(deckColourIdentity("commander", [commander, line(card({ colourIdentity: "W" }), 1)])).toBe("BG");
     expect(
-      deckColorIdentity("casual", [line(card({ colorIdentity: "GW" }), 1), line(card({ colorIdentity: "U" }), 1)]),
+      deckColourIdentity("casual", [line(card({ colourIdentity: "GW" }), 1), line(card({ colourIdentity: "U" }), 1)]),
     ).toBe("WUG");
   });
 });

@@ -2,24 +2,24 @@ import type { Knex } from "knex";
 import request from "supertest";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, makeCard, resetDb } from "./helpers.js";
 
 const shock = makeCard({ name: "Shock", setCode: "m19" });
 const shockReprint = makeCard({ name: "Shock", setCode: "m20" });
 const forest = makeCard({
   name: "Forest",
   typeLine: "Basic Land — Forest",
-  colors: "",
-  colorIdentity: "G",
+  colours: "",
+  colourIdentity: "G",
   isBasicLand: true,
   manaCost: null,
   manaValue: 0,
 });
-const catalog = new FakeCatalog([shock, shockReprint, forest]);
-container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(catalog);
+const catalogue = new FakeCatalogue([shock, shockReprint, forest]);
+container.rebind<CardCatalogue>(TYPES.CardCatalogue).toConstantValue(catalogue);
 
 const app = createApp();
 const db = container.get<Knex>(TYPES.Knex);
@@ -66,10 +66,10 @@ describe("POST /api/collection", () => {
   });
 
   it("only asks the catalogue for cards it hasn't cached", async () => {
-    catalog.requested.length = 0;
+    catalogue.requested.length = 0;
     await add({ scryfallId: forest.id }).expect(201);
     await add({ scryfallId: forest.id, condition: "MP" }).expect(201);
-    expect(catalog.requested).toEqual([[forest.id]]);
+    expect(catalogue.requested).toEqual([[forest.id]]);
   });
 
   it("404s for an unknown Scryfall id", async () => {
@@ -108,8 +108,8 @@ describe("GET /api/collection", () => {
 
   it.each([
     ["search=sho", ["Shock"]],
-    ["colors=R", ["Shock"]],
-    ["colors=C", ["Forest"]],
+    ["colours=R", ["Shock"]],
+    ["colours=C", ["Forest"]],
     ["type=basic", ["Forest"]],
     ["finish=foil", ["Forest"]],
     ["setCode=M19", ["Shock"]],
@@ -120,7 +120,7 @@ describe("GET /api/collection", () => {
   });
 
   it("rejects colours out of WUBRG order", async () => {
-    await request(app).get("/api/collection?colors=RW").set(auth("cards:read")).expect(400);
+    await request(app).get("/api/collection?colours=RW").set(auth("cards:read")).expect(400);
   });
 });
 
@@ -129,7 +129,7 @@ describe("sorting the collection", () => {
   const n10 = makeCard({ name: "Ten", setCode: "srt", collectorNumber: "10" });
   const n2 = makeCard({ name: "Two", setCode: "srt", collectorNumber: "2" });
   const n1a = makeCard({ name: "One A", setCode: "srt", collectorNumber: "1a" });
-  catalog.cards.push(n10, n2, n1a);
+  catalogue.cards.push(n10, n2, n1a);
 
   const names = async (sort: string, scope?: string) =>
     (
@@ -233,16 +233,16 @@ describe("GET, PATCH and DELETE /api/collection/{id}", () => {
   });
 });
 
-describe("GET /api/catalog", () => {
+describe("GET /api/catalogue", () => {
   it("proxies autocomplete and printings", async () => {
-    const names = await request(app).get("/api/catalog/autocomplete?q=sho").set(auth("cards:read")).expect(200);
+    const names = await request(app).get("/api/catalogue/autocomplete?q=sho").set(auth("cards:read")).expect(200);
     expect(names.body).toEqual(["Shock"]);
 
-    const printings = await request(app).get("/api/catalog/printings?name=Shock").set(auth("cards:read")).expect(200);
+    const printings = await request(app).get("/api/catalogue/printings?name=Shock").set(auth("cards:read")).expect(200);
     expect(printings.body.map((card: { setCode: string }) => card.setCode)).toEqual(["m19", "m20"]);
   });
 
   it("404s for an unknown set and number", async () => {
-    await request(app).get("/api/catalog/cards/xyz/1").set(auth("cards:read")).expect(404);
+    await request(app).get("/api/catalogue/cards/xyz/1").set(auth("cards:read")).expect(404);
   });
 });

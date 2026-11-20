@@ -2,34 +2,34 @@ import type { Knex } from "knex";
 import request from "supertest";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
-import type { PreconSource } from "../src/catalog/precon-source.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
+import type { PreconSource } from "../src/catalogue/precon-source.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, FakePrecons, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, FakePrecons, makeCard, resetDb } from "./helpers.js";
 
-const dogmeat = makeCard({ name: "Dogmeat, Ever Loyal", typeLine: "Legendary Creature — Dog", colorIdentity: "RGW" });
-const solRing = makeCard({ name: "Sol Ring", typeLine: "Artifact", colors: "", colorIdentity: "" });
+const dogmeat = makeCard({ name: "Dogmeat, Ever Loyal", typeLine: "Legendary Creature — Dog", colourIdentity: "RGW" });
+const solRing = makeCard({ name: "Sol Ring", typeLine: "Artifact", colours: "", colourIdentity: "" });
 const solRingReprint = makeCard({
   name: "Sol Ring",
   oracleId: solRing.oracleId,
   setCode: "c21",
   collectorNumber: "263",
   typeLine: "Artifact",
-  colors: "",
-  colorIdentity: "",
+  colours: "",
+  colourIdentity: "",
 });
 const forest = makeCard({
   name: "Forest",
   typeLine: "Basic Land — Forest",
   isBasicLand: true,
-  colors: "",
-  colorIdentity: "G",
+  colours: "",
+  colourIdentity: "G",
 });
 
 container
-  .rebind<CardCatalog>(TYPES.CardCatalog)
-  .toConstantValue(new FakeCatalog([dogmeat, solRing, solRingReprint, forest]));
+  .rebind<CardCatalogue>(TYPES.CardCatalogue)
+  .toConstantValue(new FakeCatalogue([dogmeat, solRing, solRingReprint, forest]));
 container.rebind<PreconSource>(TYPES.PreconSource).toConstantValue(
   new FakePrecons([
     {
@@ -68,12 +68,15 @@ function importPrecon(body: Record<string, unknown>, dryRun = false) {
     .send({ fileName: "ScrappySurvivors_PIP", createDeck: true, ...body });
 }
 
-describe("GET /api/catalog/precons", () => {
+describe("GET /api/catalogue/precons", () => {
   it("searches by name, set and type", async () => {
-    const byName = await request(app).get("/api/catalog/precons?search=scrappy").set(auth()).expect(200);
+    const byName = await request(app).get("/api/catalogue/precons?search=scrappy").set(auth()).expect(200);
     expect(byName.body.map((p: { fileName: string }) => p.fileName)).toEqual(["ScrappySurvivors_PIP"]);
 
-    const byTypeAndSet = await request(app).get("/api/catalog/precons?search=commander%20pip").set(auth()).expect(200);
+    const byTypeAndSet = await request(app)
+      .get("/api/catalogue/precons?search=commander%20pip")
+      .set(auth())
+      .expect(200);
     expect(byTypeAndSet.body).toHaveLength(1);
   });
 });

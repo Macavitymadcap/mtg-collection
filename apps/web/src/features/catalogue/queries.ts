@@ -3,10 +3,10 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 /** Query keys for Scryfall lookups. Card data rarely changes, so these stay fresh for an hour. */
-export const catalogKeys = {
-  all: ["catalog"] as const,
-  names: (query: string) => [...catalogKeys.all, "names", query] as const,
-  printings: (name: string) => [...catalogKeys.all, "printings", name] as const,
+export const catalogueKeys = {
+  all: ["catalogue"] as const,
+  names: (query: string) => [...catalogueKeys.all, "names", query] as const,
+  printings: (name: string) => [...catalogueKeys.all, "printings", name] as const,
 };
 
 const HOUR = 60 * 60 * 1000;
@@ -15,8 +15,8 @@ const HOUR = 60 * 60 * 1000;
 export function useCardNames(query: string): UseQueryResult<string[]> {
   const q = query.trim();
   return useQuery({
-    queryKey: catalogKeys.names(q.toLowerCase()),
-    queryFn: () => api<string[]>("/catalog/autocomplete", { params: { q } }),
+    queryKey: catalogueKeys.names(q.toLowerCase()),
+    queryFn: () => api<string[]>("/catalogue/autocomplete", { params: { q } }),
     enabled: q.length >= 2,
     staleTime: HOUR,
   });
@@ -25,8 +25,8 @@ export function useCardNames(query: string): UseQueryResult<string[]> {
 /** Every printing of an exact card name, oldest first. */
 export function usePrintings(name: string | null): UseQueryResult<Card[]> {
   return useQuery({
-    queryKey: catalogKeys.printings(name ?? ""),
-    queryFn: () => api<Card[]>("/catalog/printings", { params: { name: name ?? "" } }),
+    queryKey: catalogueKeys.printings(name ?? ""),
+    queryFn: () => api<Card[]>("/catalogue/printings", { params: { name: name ?? "" } }),
     enabled: Boolean(name),
     staleTime: HOUR,
   });
