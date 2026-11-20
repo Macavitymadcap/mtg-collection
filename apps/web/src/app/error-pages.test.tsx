@@ -11,7 +11,8 @@ describe("error pages", () => {
     const error = new Error("boom");
     render(<ErrorPage error={error} retry={retry} />);
 
-    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Something went wrong" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(retry).toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalledWith(error);
@@ -21,6 +22,7 @@ describe("error pages", () => {
   it("points lost visitors back to the collection and decks", () => {
     render(<NotFound />);
     expect(screen.getByRole("heading", { name: "Not found" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "your collection" })).toHaveAttribute("href", "/collection");
+    expect(screen.getByRole("link", { name: "Your collection" })).toHaveAttribute("href", "/collection");
+    expect(screen.getByRole("link", { name: "Your decks" })).toHaveAttribute("href", "/decks");
   });
 });

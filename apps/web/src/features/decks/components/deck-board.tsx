@@ -24,6 +24,8 @@ interface DeckBoardProps {
   cards: DeckCard[];
   disabled: boolean;
   onQuantity: (card: DeckCard, quantity: number) => void;
+  /** Show quantities without the buttons that change them, for visitors. */
+  readOnly?: boolean;
   /** Section keys (see sectionKeys) that are collapsed. Everything is open if not given. */
   collapsed?: ReadonlySet<string>;
   onToggle?: (key: string) => void;
@@ -62,6 +64,7 @@ export function DeckBoard({
   cards,
   disabled,
   onQuantity,
+  readOnly = false,
   collapsed,
   onToggle,
   animate = true,
@@ -91,25 +94,29 @@ export function DeckBoard({
             direction="row"
             sx={{ alignItems: "center", gap: 2, py: 0.5, borderBottom: 1, borderColor: "divider" }}
           >
-            <Stack direction="row" sx={{ alignItems: "center" }}>
-              <IconButton
-                size="small"
-                aria-label={`One fewer ${entry.card.name}`}
-                disabled={disabled}
-                onClick={() => onQuantity(card, card.quantity - 1)}
-              >
-                <RemoveRounded fontSize="small" />
-              </IconButton>
+            {readOnly ? (
               <Typography sx={{ minWidth: 24, textAlign: "center" }}>{card.quantity}</Typography>
-              <IconButton
-                size="small"
-                aria-label={`One more ${entry.card.name}`}
-                disabled={disabled}
-                onClick={() => onQuantity(card, card.quantity + 1)}
-              >
-                <AddRounded fontSize="small" />
-              </IconButton>
-            </Stack>
+            ) : (
+              <Stack direction="row" sx={{ alignItems: "center" }}>
+                <IconButton
+                  size="small"
+                  aria-label={`One fewer ${entry.card.name}`}
+                  disabled={disabled}
+                  onClick={() => onQuantity(card, card.quantity - 1)}
+                >
+                  <RemoveRounded fontSize="small" />
+                </IconButton>
+                <Typography sx={{ minWidth: 24, textAlign: "center" }}>{card.quantity}</Typography>
+                <IconButton
+                  size="small"
+                  aria-label={`One more ${entry.card.name}`}
+                  disabled={disabled}
+                  onClick={() => onQuantity(card, card.quantity + 1)}
+                >
+                  <AddRounded fontSize="small" />
+                </IconButton>
+              </Stack>
+            )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <CardPreview card={entry.card}>
                 <Link

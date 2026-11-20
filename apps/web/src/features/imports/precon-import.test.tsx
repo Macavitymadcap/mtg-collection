@@ -17,7 +17,7 @@ const scrappy: PreconSummary = {
 function fakeApi(respond: (body: Record<string, unknown>, dryRun: boolean) => ImportSummary) {
   const requests: { body: Record<string, unknown>; dryRun: boolean }[] = [];
   server.use(
-    http.get("*/api/catalog/precons", () => HttpResponse.json([scrappy])),
+    http.get("*/api/catalogue/precons", () => HttpResponse.json([scrappy])),
     http.post("*/api/import/precon", async ({ request }) => {
       const body = (await request.json()) as Record<string, unknown>;
       const dryRun = new URL(request.url).searchParams.get("dryRun") === "true";

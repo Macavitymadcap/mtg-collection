@@ -1,4 +1,4 @@
-import type { BackupImportSummary, DataCounts, ExportFile } from "@mtg/shared";
+import type { BackupImportSummary, DataCounts, ExportFile, ExportFileV1 } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import { Body, Controller, Get, Post, Query, Response, Route, Security, Tags } from "tsoa";
 import { DataService } from "./data.service.js";
@@ -30,10 +30,11 @@ export class DataController extends Controller {
   /**
    * Replaces everything in the database with an export file's contents, in
    * one transaction. Use dryRun to validate the file and see the counts first.
+   * Version 1 files (from before colours were spelt "colours") are accepted too.
    */
   @Post("import")
   @Response(400, "Not a valid export file; details lists the problems")
-  public import(@Body() body: ExportFile, @Query() dryRun = false): Promise<BackupImportSummary> {
+  public import(@Body() body: ExportFile | ExportFileV1, @Query() dryRun = false): Promise<BackupImportSummary> {
     return this.service.import(body, dryRun);
   }
 }

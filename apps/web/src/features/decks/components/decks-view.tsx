@@ -12,27 +12,32 @@ import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { IdentityStripe } from "@/components/cards/color-bar";
-import { ColorPips } from "@/components/cards/color-pips";
+import { IdentityStripe } from "@/components/cards/colour-bar";
+import { ColourPips } from "@/components/cards/colour-pips";
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
 import { useDecks } from "../queries";
+import { useCanEdit } from "@/features/auth/queries";
 import { NewDeckButton } from "./new-deck-button";
 
 /** Every deck as a card, with format, colours, size and warnings. */
 export function DecksView(): JSX.Element {
   const { data: decks, isPending, isError, error, refetch } = useDecks();
+  const canEdit = useCanEdit();
 
   return (
     <>
-      <PageHeader title="Decks" subtitle="Built from the cards you own" actions={<NewDeckButton />} />
+      <PageHeader title="Decks" subtitle="Built from the cards you own" actions={canEdit && <NewDeckButton />} />
 
       {isPending ? (
         <LoadingState shape="tiles" count={3} />
       ) : isError ? (
         <ErrorState error={error} fallback="Could not load decks." onRetry={() => void refetch()} />
       ) : decks.length === 0 ? (
-        <EmptyState title="No decks yet" message="Use New deck to start building from your collection." />
+        <EmptyState
+          title="No decks yet"
+          message={canEdit ? "Use New deck to start building from your collection." : undefined}
+        />
       ) : (
         <Grid container spacing={4}>
           {decks.map((deck) => (
@@ -48,14 +53,14 @@ export function DecksView(): JSX.Element {
                       sx={{ height: 120, objectFit: "cover", objectPosition: "center 30%" }}
                     />
                   )}
-                  <IdentityStripe colors={deck.colorIdentity} />
+                  <IdentityStripe colours={deck.colourIdentity} />
                   <CardContent>
                     <Stack sx={{ gap: 2 }}>
                       <Stack direction="row" sx={{ justifyContent: "space-between", gap: 2, alignItems: "flex-start" }}>
                         <Typography variant="h6" component="h2">
                           {deck.name}
                         </Typography>
-                        <ColorPips colors={deck.colorIdentity} />
+                        <ColourPips colours={deck.colourIdentity} />
                       </Stack>
                       {deck.description && (
                         <Typography

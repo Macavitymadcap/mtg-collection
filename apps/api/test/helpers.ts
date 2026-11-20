@@ -1,8 +1,8 @@
 import type { Card, PreconSummary } from "@mtg/shared";
 import jwt from "jsonwebtoken";
 import type { Knex } from "knex";
-import type { CardCatalog, CardLookup } from "../src/catalog/card-catalog.js";
-import type { PreconDeck, PreconSource } from "../src/catalog/precon-source.js";
+import type { CardCatalogue, CardLookup } from "../src/catalogue/card-catalogue.js";
+import type { PreconDeck, PreconSource } from "../src/catalogue/precon-source.js";
 import { config } from "../src/config.js";
 
 /** A bearer header for the test API. */
@@ -36,8 +36,8 @@ export function makeCard(overrides: Partial<Card> = {}): Card {
     manaValue: 2,
     typeLine: "Instant",
     oracleText: "Deal 2 damage to any target.",
-    colors: "R",
-    colorIdentity: "R",
+    colours: "R",
+    colourIdentity: "R",
     isBasicLand: false,
     layout: "normal",
     imageSmall: null,
@@ -48,7 +48,7 @@ export function makeCard(overrides: Partial<Card> = {}): Card {
 }
 
 /** An in-memory catalogue standing in for Scryfall. Records the ids it was asked for. */
-export class FakeCatalog implements CardCatalog {
+export class FakeCatalogue implements CardCatalogue {
   readonly requested: string[][] = [];
 
   constructor(public cards: Card[] = []) {}

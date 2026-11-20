@@ -38,7 +38,7 @@ test("filters the collection by colour, keeping the filter in the URL", async ({
   await expect(page.getByText("4 entries")).toBeVisible();
 
   await page.getByRole("button", { name: "Green" }).click();
-  await expect(page).toHaveURL(/colors=G/);
+  await expect(page).toHaveURL(/colours=G/);
   await expect(page.getByText("1 entry")).toBeVisible();
   await expect(page.getByRole("row", { name: /Llanowar Elves/ })).toBeVisible();
 });

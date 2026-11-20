@@ -8,7 +8,7 @@ import { ImportView } from "./import-view";
 
 describe("ImportView", () => {
   it("starts on ManaBox and switches tabs through the URL", async () => {
-    server.use(http.get("*/api/catalog/precons", () => HttpResponse.json([])));
+    server.use(http.get("*/api/catalogue/precons", () => HttpResponse.json([])));
     const updates: string[] = [];
     const { user } = renderWithProviders(<ImportView />, {
       onUrlUpdate: (event: UrlUpdateEvent) => updates.push(event.searchParams.toString()),
@@ -23,7 +23,7 @@ describe("ImportView", () => {
   });
 
   it("opens on the tab named in the URL", () => {
-    server.use(http.get("*/api/catalog/precons", () => HttpResponse.json([])));
+    server.use(http.get("*/api/catalogue/precons", () => HttpResponse.json([])));
     renderWithProviders(<ImportView />, { searchParams: "?source=precon" });
     expect(screen.getByRole("tab", { name: "Preconstructed deck", selected: true })).toBeInTheDocument();
   });

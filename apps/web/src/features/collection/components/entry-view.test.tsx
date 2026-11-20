@@ -43,6 +43,17 @@ describe("EntryView", () => {
     expect(screen.getByRole("link", { name: "Artifacts" })).toHaveAttribute("href", "/decks/3");
   });
 
+  it("shows visitors the copies without the edit form", async () => {
+    server.use(http.get("*/api/collection/5", () => HttpResponse.json(detail({ signed: true }))));
+    renderWithProviders(<EntryView id={5} />, { session: null });
+
+    expect(await screen.findByText("2 × non-foil, near mint, language en")).toBeInTheDocument();
+    expect(screen.getByText("signed")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Quantity/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Change printing" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+  });
+
   it("saves edits", async () => {
     let body: unknown;
     server.use(
@@ -65,7 +76,7 @@ describe("EntryView", () => {
     let body: unknown;
     server.use(
       http.get("*/api/collection/5", () => HttpResponse.json(detail())),
-      http.get("*/api/catalog/printings", () => HttpResponse.json([furnace, reprint])),
+      http.get("*/api/catalogue/printings", () => HttpResponse.json([furnace, reprint])),
       http.patch("*/api/collection/5", async ({ request }) => {
         body = await request.json();
         return HttpResponse.json(makeEntry({ id: 9, card: reprint, quantity: 5 }));

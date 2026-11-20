@@ -1,6 +1,6 @@
 /** The five colours of Magic, in WUBRG order. Colourless is an empty string. */
-export const colors = ["W", "U", "B", "R", "G"] as const;
-export type Color = (typeof colors)[number];
+export const colours = ["W", "U", "B", "R", "G"] as const;
+export type Colour = (typeof colours)[number];
 
 /** How a physical card is printed. */
 export const finishes = ["nonfoil", "foil", "etched"] as const;

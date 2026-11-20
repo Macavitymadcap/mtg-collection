@@ -1,4 +1,4 @@
-import { test as base, expect, type Page } from "@playwright/test";
+import { test as base, expect, type Cookie, type Page } from "@playwright/test";
 import jwt from "jsonwebtoken";
 import { seedCollection } from "./fixtures/cards";
 
@@ -15,14 +15,25 @@ const SYMBOL =
 /**
  * Every test starts from the same data (fixtures/cards.ts), replaced through
  * the API's own import endpoint, and never loads images from Scryfall.
+ * Tests run signed in (as the API's test login, without GitHub) unless they
+ * set `test.use({ signedIn: false })`.
  */
-export const test = base.extend<{ page: Page }>({
-  page: async ({ page, request }, use) => {
+export const test = base.extend<{ page: Page; signedIn: boolean }>({
+  signedIn: [true, { option: true }],
+  page: async ({ page, request, signedIn, baseURL }, use) => {
     const reset = await request.post(`${API}/data/import`, {
       headers: { Authorization: `Bearer ${token()}` },
       data: seedCollection(),
     });
     expect(reset.ok(), await reset.text()).toBe(true);
+
+    if (signedIn) {
+      const response = await request.post(`${API}/test/sign-in?origin=${baseURL}`, {
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      expect(response.ok(), await response.text()).toBe(true);
+      await page.context().addCookies((await response.json()) as Cookie[]);
+    }
 
     await page.route(/^https:\/\/(svgs|cards)\.scryfall\.io\//, (route) =>
       route.fulfill({ contentType: "image/svg+xml", body: SYMBOL }),

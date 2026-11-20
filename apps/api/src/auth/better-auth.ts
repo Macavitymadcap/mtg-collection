@@ -1,5 +1,4 @@
 import { betterAuth, type BetterAuthPlugin } from "better-auth";
-import { APIError } from "better-auth/api";
 import { MysqlDialect } from "kysely";
 import { createPool } from "mysql2";
 import type { Config } from "../config.js";
@@ -34,8 +33,7 @@ export function createAuth(config: Config, plugins: BetterAuthPlugin[] = []) {
           github: {
             clientId: config.GITHUB_CLIENT_ID,
             clientSecret: config.GITHUB_CLIENT_SECRET,
-            // Only the profile is needed: the login is what the allowlist checks
-            scope: ["read:user"],
+            // Better Auth asks for read:user and user:email; the login is what the allowlist checks
             mapProfileToUser: (profile: { login: string }) => ({ githubLogin: profile.login }),
           },
         }
@@ -52,7 +50,9 @@ export function createAuth(config: Config, plugins: BetterAuthPlugin[] = []) {
     socialProviders: github,
     user: {
       modelName: "auth_user",
-      additionalFields: { githubLogin: { type: "string", required: false, input: false } },
+      // Not `input: false`: Better Auth would then drop it from the GitHub profile too. Nobody can
+      // change it later, as the update-user route is turned off (disabledPaths).
+      additionalFields: { githubLogin: { type: "string", required: false } },
     },
     session: {
       modelName: "auth_session",
@@ -62,14 +62,17 @@ export function createAuth(config: Config, plugins: BetterAuthPlugin[] = []) {
     account: { modelName: "auth_account" },
     verification: { modelName: "auth_verification" },
     advanced: { cookiePrefix: "mtg" },
+    // Failed sign-ins without a page to go back to (e.g. an expired GitHub link) go to the site's error page
+    onAPIError: { errorURL: new URL("/error", config.AUTH_BASE_URL).href },
+    // There are no account settings: names, emails and GitHub logins come from GitHub
+    disabledPaths: ["/update-user", "/change-email"],
     databaseHooks: {
       user: {
         create: {
           // eslint-disable-next-line @typescript-eslint/require-await -- Better Auth expects a promise
           before: async (user) => {
-            if (!isAllowed(config, user.githubLogin)) {
-              throw new APIError("FORBIDDEN", { message: "This GitHub account isn't allowed to sign in" });
-            }
+            // false declines: Better Auth sends the browser back to the site with an error code
+            return isAllowed(config, user.githubLogin);
           },
         },
       },
@@ -82,9 +85,7 @@ export function createAuth(config: Config, plugins: BetterAuthPlugin[] = []) {
             const user = (await internalAdapter.findUserById(session.userId)) as {
               githubLogin?: unknown;
             } | null;
-            if (!isAllowed(config, user?.githubLogin)) {
-              throw new APIError("FORBIDDEN", { message: "This GitHub account isn't allowed to sign in" });
-            }
+            return isAllowed(config, user?.githubLogin);
           },
         },
       },

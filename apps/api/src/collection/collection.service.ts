@@ -8,7 +8,7 @@ import type {
   UpdateCollectionEntryRequest,
 } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { CardService } from "../catalog/card.service.js";
+import { CardService } from "../catalogue/card.service.js";
 import { BadRequest, Conflict, NotFound } from "../core/errors.js";
 import { toPage, type PageRequest } from "../core/pagination.js";
 import { TransactionManager } from "../core/transaction.js";
@@ -31,8 +31,8 @@ export class CollectionService {
   ) {}
 
   async list(filter: CollectionFilter, sort: CollectionSort, page: PageRequest): Promise<Page<CollectionEntry>> {
-    if (filter.colors && !/^(C|W?U?B?R?G?)$/.test(filter.colors)) {
-      throw new BadRequest('colors must be letters from "WUBRG" in that order, or "C" for colourless');
+    if (filter.colours && !/^(C|W?U?B?R?G?)$/.test(filter.colours)) {
+      throw new BadRequest('colours must be letters from "WUBRG" in that order, or "C" for colourless');
     }
     const { results, count } = await this.entries.list(filter, sort, page);
     return toPage(results, count, page);

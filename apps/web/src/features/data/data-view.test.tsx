@@ -41,7 +41,7 @@ describe("DataView", () => {
     server.use(
       http.get("*/api/data/export", () =>
         HttpResponse.json({
-          formatVersion: 1,
+          formatVersion: 2,
           exportedAt: "2026-11-13T16:00:00.000Z",
           cards: [],
           collection: [],
@@ -71,7 +71,7 @@ describe("DataView", () => {
     );
     const { user, container } = renderWithProviders(<DataView />);
 
-    await user.upload(container.querySelector("input[type=file]")!, jsonFile('{"formatVersion":1}'));
+    await user.upload(container.querySelector("input[type=file]")!, jsonFile('{"formatVersion":2}'));
 
     const table = await screen.findByRole("table");
     expect(within(table).getByRole("row", { name: "Collection entries 297 10" })).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { colors as wubrg, type Board, type Format } from "./constants.js";
+import { colours as wubrg, type Board, type Format } from "./constants.js";
 import type { DeckCard, DeckStats, DeckWarning } from "./deck.js";
 
 /** Boards that are part of the deck you play. Sideboard and maybe aren't. */
@@ -28,9 +28,9 @@ const count = (cards: DeckCard[], boards: readonly Board[]): number =>
   cards.filter((card) => boards.includes(card.board)).reduce((sum, card) => sum + card.quantity, 0);
 
 /** Letters in WUBRG order. */
-function sortColors(letters: Iterable<string>): string {
+function sortColours(letters: Iterable<string>): string {
   const set = new Set(letters);
-  return wubrg.filter((color) => set.has(color)).join("");
+  return wubrg.filter((colour) => set.has(colour)).join("");
 }
 
 /** Basic lands, and cards that say so (e.g. Relentless Rats), ignore copy limits. */
@@ -43,12 +43,12 @@ function unlimitedCopies(card: DeckCard): boolean {
  * A deck's colour identity. In commander it's the commanders'; otherwise it's
  * every card on the main deck.
  */
-export function deckColorIdentity(format: Format, cards: DeckCard[]): string {
+export function deckColourIdentity(format: Format, cards: DeckCard[]): string {
   const source =
     rules[format].commander && cards.some((card) => card.board === "commander")
       ? cards.filter((card) => card.board === "commander")
       : cards.filter((card) => PLAYED_BOARDS.includes(card.board));
-  return sortColors(source.flatMap((card) => [...card.entry.card.colorIdentity]));
+  return sortColours(source.flatMap((card) => [...card.entry.card.colourIdentity]));
 }
 
 /**
@@ -113,15 +113,15 @@ export function checkDeck(format: Format, cards: DeckCard[]): DeckWarning[] {
     } else if (commanders > 2) {
       warnings.push({ code: "commander-count", message: `${commanders} commanders; at most 2 (with partner).` });
     } else {
-      const identity = deckColorIdentity(format, cards);
+      const identity = deckColourIdentity(format, cards);
       for (const card of cards) {
         if (!PLAYED_BOARDS.includes(card.board) || card.board === "commander") continue;
-        const outside = [...card.entry.card.colorIdentity].filter((color) => !identity.includes(color));
+        const outside = [...card.entry.card.colourIdentity].filter((colour) => !identity.includes(colour));
         if (outside.length) {
           warnings.push({
             code: "colour-identity",
             cardName: card.entry.card.name,
-            message: `${card.entry.card.name} is outside the commander's colours (${sortColors(outside)}).`,
+            message: `${card.entry.card.name} is outside the commander's colours (${sortColours(outside)}).`,
           });
         }
       }
@@ -164,7 +164,7 @@ export function primaryType(typeLine: string): string {
 
 /** Counts for the deck builder's charts. Only the played boards (commander and main) count. */
 export function deckStats(cards: DeckCard[]): DeckStats {
-  const stats: DeckStats = { cardCount: 0, manaCurve: {}, colors: {}, types: {} };
+  const stats: DeckStats = { cardCount: 0, manaCurve: {}, colours: {}, types: {} };
   for (const label of ["0", "1", "2", "3", "4", "5", "6", "7+"]) stats.manaCurve[label] = 0;
 
   for (const { board, quantity, entry } of cards) {
@@ -178,8 +178,8 @@ export function deckStats(cards: DeckCard[]): DeckStats {
       const curve = card.manaValue >= 7 ? "7+" : String(Math.floor(card.manaValue));
       stats.manaCurve[curve] = (stats.manaCurve[curve] ?? 0) + quantity;
     }
-    for (const color of card.colors || "C") {
-      stats.colors[color] = (stats.colors[color] ?? 0) + quantity;
+    for (const colour of card.colours || "C") {
+      stats.colours[colour] = (stats.colours[colour] ?? 0) + quantity;
     }
   }
   return stats;

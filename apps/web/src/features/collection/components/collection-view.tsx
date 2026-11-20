@@ -15,6 +15,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/page-states";
 import { PageHeader } from "@/components/layout/page-header";
+import { useCanEdit } from "@/features/auth/queries";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { useCollection } from "../queries";
 import { toCollectionQuery, useCollectionParams } from "../use-collection-params";
@@ -23,6 +24,9 @@ import { CollectionGallery } from "./collection-gallery";
 import { CollectionList } from "./collection-list";
 import { CollectionTable } from "./collection-table";
 
+/** Sorts by price paid, which only people signed in can see. */
+const PRICE_SORTS: CollectionSort[] = ["price", "-price"];
+
 /** The collection page: filters plus a table or image grid. */
 export function CollectionView(): JSX.Element {
   const { params, setParams } = useCollectionParams();
@@ -30,6 +34,10 @@ export function CollectionView(): JSX.Element {
   // Phones get a list instead of the wide table; the image grid works on both
   const isMobile = useIsMobile();
   const showTable = params.view === "table" && !isMobile;
+  const canEdit = useCanEdit();
+  const sorts = (Object.keys(collectionSortLabels) as CollectionSort[]).filter(
+    (sort) => canEdit || !PRICE_SORTS.includes(sort),
+  );
 
   const subtitle = data ? `${data.count} ${data.count === 1 ? "entry" : "entries"}` : "Every card you own";
 
@@ -39,14 +47,16 @@ export function CollectionView(): JSX.Element {
         title="Collection"
         subtitle={subtitle}
         actions={
-          <>
-            <Button component={Link} href="/collection/import" startIcon={<UploadFileRounded />}>
-              Import
-            </Button>
-            <Button component={Link} href="/collection/add" variant="contained" startIcon={<AddRounded />}>
-              Add cards
-            </Button>
-          </>
+          canEdit && (
+            <>
+              <Button component={Link} href="/collection/import" startIcon={<UploadFileRounded />}>
+                Import
+              </Button>
+              <Button component={Link} href="/collection/add" variant="contained" startIcon={<AddRounded />}>
+                Add cards
+              </Button>
+            </>
+          )
         }
       />
 
@@ -59,11 +69,11 @@ export function CollectionView(): JSX.Element {
             select
             size="small"
             label="Sort by"
-            value={params.sort}
+            value={sorts.includes(params.sort) ? params.sort : "name"}
             onChange={(event) => void setParams({ sort: event.target.value as CollectionSort, page: 1 })}
             sx={{ width: { xs: "100%", sm: 240 } }}
           >
-            {(Object.keys(collectionSortLabels) as CollectionSort[]).map((sort) => (
+            {sorts.map((sort) => (
               <MenuItem key={sort} value={sort}>
                 {collectionSortLabels[sort]}
               </MenuItem>

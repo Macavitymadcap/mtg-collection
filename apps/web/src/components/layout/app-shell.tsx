@@ -1,6 +1,6 @@
 "use client";
 
-import type { JSX, ReactNode } from "react";
+import { Suspense, type JSX, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AppBar from "@mui/material/AppBar";
@@ -15,8 +15,11 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { ColorModeToggle } from "./color-mode-toggle";
-import { activeHref, mobileNavItems, navItems } from "./nav-items";
+import { useCanEdit } from "@/features/auth/queries";
+import { SignInError } from "@/features/auth/sign-in-error";
+import { UserMenu } from "@/features/auth/user-menu";
+import { ColourModeToggle } from "./colour-mode-toggle";
+import { activeHref, mobileNavItems as allMobileNavItems, navItems as allNavItems, visibleItems } from "./nav-items";
 
 const DRAWER_WIDTH = 220;
 /** Height of the bottom bar on phones, plus the iPhone home-indicator area. */
@@ -28,6 +31,9 @@ const BOTTOM_NAV_SPACE = "calc(56px + env(safe-area-inset-bottom))";
  */
 export function AppShell({ children }: { children: ReactNode }): JSX.Element {
   const pathname = usePathname();
+  const canEdit = useCanEdit();
+  const navItems = visibleItems(allNavItems, canEdit);
+  const mobileNavItems = visibleItems(allMobileNavItems, canEdit);
   const current = activeHref(pathname, navItems);
   const currentMobile = activeHref(pathname, mobileNavItems);
 
@@ -38,7 +44,12 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
           <Typography variant="h6" component="span" sx={{ fontWeight: 700, flexGrow: 1 }}>
             MTG Collection
           </Typography>
-          <ColorModeToggle />
+          <ColourModeToggle />
+          <UserMenu />
+          {/* Reads the query string, which needs a Suspense boundary */}
+          <Suspense>
+            <SignInError />
+          </Suspense>
         </Toolbar>
       </AppBar>
 

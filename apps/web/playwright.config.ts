@@ -42,6 +42,8 @@ export default defineConfig({
         PORT: String(PORTS.api),
         SCRYFALL_BASE_URL: `http://127.0.0.1:${PORTS.upstream}`,
         MTGJSON_BASE_URL: `http://127.0.0.1:${PORTS.upstream}`,
+        // The site the browser signs in on
+        AUTH_BASE_URL: `http://localhost:${PORTS.web}`,
       },
       reuseExistingServer: !isCI,
       timeout: 120_000,

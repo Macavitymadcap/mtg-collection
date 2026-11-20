@@ -16,12 +16,12 @@ const dogmeat = makeDeckCard(
 
 function deck(overrides: Partial<DeckDetail> = {}): DeckDetail {
   return {
-    ...makeDeckSummary({ id: 1, name: "Scrappy Survivors", cardCount: 1, colorIdentity: "RGW" }),
+    ...makeDeckSummary({ id: 1, name: "Scrappy Survivors", cardCount: 1, colourIdentity: "RGW" }),
     cards: [dogmeat],
     stats: {
       cardCount: 1,
       manaCurve: { "0": 0, "1": 0, "2": 0, "3": 1, "4": 0, "5": 0, "6": 0, "7+": 0 },
-      colors: { R: 1 },
+      colours: { R: 1 },
       types: { Creature: 1 },
     },
     warnings: [{ code: "deck-size", message: "A commander deck has exactly 100 cards; this has 1." }],
@@ -64,6 +64,19 @@ describe("DeckBuilder", () => {
     expect(screen.getByRole("heading", { name: "Commander (1)" })).toBeInTheDocument();
     expect(screen.getByText("A commander deck has exactly 100 cards; this has 1.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Mana curve" })).toBeInTheDocument();
+  });
+
+  it("shows visitors the deck without ways to change it", async () => {
+    server.use(http.get("*/api/decks/1", () => HttpResponse.json(deck())));
+    renderWithProviders(<DeckBuilder id={1} />, { session: null });
+
+    expect(await screen.findByRole("heading", { name: "Commander (1)" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Mana curve" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /One more/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /One fewer/ })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Add from your collection")).not.toBeInTheDocument();
   });
 
   it("adds a card from the collection to the chosen board", async () => {

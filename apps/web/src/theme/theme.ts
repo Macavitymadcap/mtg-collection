@@ -3,19 +3,19 @@
 import { createTheme } from "@mui/material/styles";
 
 /** Magic's five colours plus colourless, used for pips, filters, charts and chips. */
-export type ManaColor = "W" | "U" | "B" | "R" | "G" | "C";
+export type ManaColour = "W" | "U" | "B" | "R" | "G" | "C";
 
 declare module "@mui/material/styles" {
   interface Palette {
-    mana: Record<ManaColor, string>;
+    mana: Record<ManaColour, string>;
   }
   interface PaletteOptions {
-    mana?: Record<ManaColor, string>;
+    mana?: Record<ManaColour, string>;
   }
 }
 
 // Mana colours tuned per scheme so each keeps contrast against the background
-const manaLight: Record<ManaColor, string> = {
+const manaLight: Record<ManaColour, string> = {
   W: "#C9A227",
   U: "#1F6FB2",
   B: "#3B3540",
@@ -23,7 +23,7 @@ const manaLight: Record<ManaColor, string> = {
   G: "#2E7D4F",
   C: "#8A8494",
 };
-const manaDark: Record<ManaColor, string> = {
+const manaDark: Record<ManaColour, string> = {
   W: "#F2D06B",
   U: "#5EA8E8",
   B: "#B9AFC4",

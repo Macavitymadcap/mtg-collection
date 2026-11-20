@@ -10,7 +10,7 @@ const API = "http://api.test/api";
 
 describe("forward", () => {
   it("calls the API with a short-lived service token and passes the response back", async () => {
-    type Seen = { url: string; auth: string | null; correlation: string | null };
+    type Seen = { url: string; auth: string | null; correlation: string | null; cookie: string | null };
     const seen: Seen[] = [];
     server.use(
       http.get(`${API}/collection`, ({ request }) => {
@@ -18,6 +18,7 @@ describe("forward", () => {
           url: request.url,
           auth: request.headers.get("authorization"),
           correlation: request.headers.get("x-correlation-id"),
+          cookie: request.headers.get("cookie"),
         });
         return HttpResponse.json({ count: 1 }, { status: 200 });
       }),
@@ -25,7 +26,7 @@ describe("forward", () => {
 
     const response = await forward(
       new Request("http://localhost:3000/api/collection?search=bolt&page=2", {
-        headers: { "x-correlation-id": "c-1" },
+        headers: { "x-correlation-id": "c-1", cookie: "mtg.session_token=abc" },
       }),
       { path: "/collection" },
     );
@@ -36,14 +37,29 @@ describe("forward", () => {
       {
         url: `${API}/collection?search=bolt&page=2`,
         correlation: "c-1",
+        cookie: "mtg.session_token=abc",
         auth: expect.stringMatching(/^Bearer /) as string,
       },
     ]);
 
     const [{ auth }] = seen as [Seen];
     const claims = jwt.verify(String(auth).replace("Bearer ", ""), "test-secret-0123456789") as jwt.JwtPayload;
-    expect(claims).toMatchObject({ sub: "web-bff", scope: "cards:read cards:write data:admin" });
+    expect(claims).toMatchObject({ sub: "web-bff", scope: "cards:read" });
     expect(Number(claims.exp) - Number(claims.iat)).toBe(300);
+  });
+
+  it("sends no cookie for visitors who have none", async () => {
+    const cookies: (string | null)[] = [];
+    server.use(
+      http.get(`${API}/decks`, ({ request }) => {
+        cookies.push(request.headers.get("cookie"));
+        return HttpResponse.json([]);
+      }),
+    );
+
+    await forward(new Request("http://localhost:3000/api/decks"), { path: "/decks" });
+
+    expect(cookies).toEqual([null]);
   });
 
   it("rejects bodies that fail the schema without calling the API", async () => {

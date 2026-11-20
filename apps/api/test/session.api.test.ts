@@ -1,17 +1,17 @@
 import type { Knex } from "knex";
 import request from "supertest";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { testUtils, type TestHelpers } from "better-auth/plugins";
 import { createApp } from "../src/app.js";
 import { createAuth } from "../src/auth/better-auth.js";
-import type { CardCatalog } from "../src/catalog/card-catalog.js";
+import type { CardCatalogue } from "../src/catalogue/card-catalogue.js";
 import { config } from "../src/config.js";
 import { container } from "../src/ioc.js";
 import { TYPES } from "../src/types.js";
-import { auth, FakeCatalog, makeCard, resetDb } from "./helpers.js";
+import { auth, FakeCatalogue, makeCard, resetDb } from "./helpers.js";
 
 const shock = makeCard({ name: "Shock" });
-container.rebind<CardCatalog>(TYPES.CardCatalog).toConstantValue(new FakeCatalog([shock]));
+container.rebind<CardCatalogue>(TYPES.CardCatalogue).toConstantValue(new FakeCatalogue([shock]));
 
 const app = createApp();
 const db = container.get<Knex>(TYPES.Knex);
@@ -135,9 +135,7 @@ describe("visitors", () => {
 describe("the allowlist", () => {
   it("stops anyone else's user being created", async () => {
     const test = await helpers();
-    await expect(test.saveUser(test.createUser({ email: "x@example.com", githubLogin: "stranger" }))).rejects.toThrow(
-      "isn't allowed",
-    );
+    expect(await test.saveUser(test.createUser({ email: "x@example.com", githubLogin: "stranger" }))).toBeNull();
     expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 0 });
   });
 });
@@ -162,5 +160,102 @@ describe("signing in", () => {
       .send({ email: "a@example.com", password: "long-enough-password", name: "A" });
     expect(response.status).toBeGreaterThanOrEqual(400);
     expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 0 });
+  });
+});
+
+describe("POST /api/test/sign-in (browser tests only)", () => {
+  it("signs in as the test login and returns the session cookies, the second time too", async () => {
+    await request(app).post("/api/test/sign-in?origin=http://localhost:3001").set(auth()).expect(200);
+    const response = await request(app).post("/api/test/sign-in?origin=http://localhost:3001").set(auth()).expect(200);
+
+    const cookies = response.body as { name: string; value: string; domain: string }[];
+    expect(cookies).toContainEqual(expect.objectContaining({ name: "mtg.session_token", domain: "localhost" }));
+    const cookie = cookies.map(({ name, value }) => `${name}=${value}`).join("; ");
+    await addShock({ ...bff, Cookie: cookie }).expect(201);
+    expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 1 });
+  });
+
+  it("needs the data:admin scope", async () => {
+    await request(app).post("/api/test/sign-in").set(bff).expect(403);
+  });
+});
+
+/**
+ * Stands in for GitHub: the token exchange and the two profile requests
+ * Better Auth makes after someone approves signing in.
+ */
+function fakeGitHub(login: string) {
+  const responses: Record<string, unknown> = {
+    "https://github.com/login/oauth/access_token": { access_token: "token", token_type: "bearer", scope: "read:user" },
+    "https://api.github.com/user": {
+      id: 4242,
+      login,
+      name: "Dan",
+      email: null,
+      avatar_url: "https://example.com/a.png",
+    },
+    "https://api.github.com/user/emails": [{ email: `${login}@example.com`, primary: true, verified: true }],
+  };
+  vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    return Response.json(responses[url.origin + url.pathname]);
+  });
+}
+
+/** Signs in the way a browser does: start, go to GitHub (faked), come back to the callback. */
+async function signInThroughGitHub() {
+  const start = await request(app)
+    .post("/api/auth/sign-in/social")
+    .set("Origin", config.AUTH_BASE_URL)
+    .send({ provider: "github", callbackURL: "/decks", errorCallbackURL: "/decks" })
+    .expect(200);
+  const state = new URL(start.body.url as string).searchParams.get("state");
+  const cookies = (start.headers["set-cookie"] as unknown as string[]).map((cookie) => cookie.split(";")[0]).join("; ");
+  return request(app).get(`/api/auth/callback/github?code=code&state=${state}`).set("Cookie", cookies);
+}
+
+describe("signing in through GitHub", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("creates the user with their GitHub login and goes back to the page", async () => {
+    fakeGitHub("Allowed-Tester");
+
+    const response = await signInThroughGitHub();
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe("/decks");
+    expect(await db("auth_user").select("githubLogin", "email")).toEqual([
+      { githubLogin: "Allowed-Tester", email: "allowed-tester@example.com" },
+    ]);
+    const cookie = (response.headers["set-cookie"] as unknown as string[]).map((c) => c.split(";")[0]).join("; ");
+    await addShock({ ...bff, Cookie: cookie }).expect(201);
+  });
+
+  it("turns away anyone not on the allowlist, without creating a user", async () => {
+    fakeGitHub("stranger");
+
+    const response = await signInThroughGitHub();
+
+    expect(response.status).toBe(302);
+    // Back to the page, with the reason for the site to show
+    expect(response.headers.location).toBe("/decks?error=unable_to_create_user");
+    expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 0 });
+  });
+
+  it("sends an expired or forged return from GitHub to the site's error page", async () => {
+    const response = await request(app).get("/api/auth/callback/github?code=code&state=forged").expect(302);
+    expect(response.headers.location).toMatch(new RegExp(`^${config.AUTH_BASE_URL}/error\\?error=state_`));
+  });
+
+  it("doesn't let a signed-in user change their GitHub login", async () => {
+    const cookie = await signIn("allowed-tester");
+
+    await request(app)
+      .post("/api/auth/update-user")
+      .set({ Cookie: cookie, Origin: config.AUTH_BASE_URL })
+      .send({ githubLogin: "someone-else" })
+      .expect(404);
+
+    expect(await db("auth_user").select("githubLogin")).toEqual([{ githubLogin: "allowed-tester" }]);
   });
 });
