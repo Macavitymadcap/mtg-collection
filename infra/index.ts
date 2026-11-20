@@ -10,13 +10,26 @@ const accountId = config.require("accountId");
 const dbPassword = process.env.MTG_DB_PASSWORD;
 if (!dbPassword) throw new Error("Set MTG_DB_PASSWORD to the database user's password");
 
-/** Aiven signs its servers' certificates with its own CA, so Hyperdrive needs it to check them. */
-const databaseCa = new cloudflare.MtlsCertificate("database-ca", {
-  accountId,
-  name: "mtg-collection-aiven-ca",
-  ca: true,
-  certificates: readFileSync(join(__dirname, "aiven-ca.pem"), "utf8"),
-});
+/**
+ * Aiven signs its servers' certificates with its own CA, so Hyperdrive needs
+ * it to check them. Cloudflare allows each certificate once per account, and
+ * this one was first uploaded by hand, so Pulumi adopts that upload.
+ */
+const databaseCa = new cloudflare.MtlsCertificate(
+  "database-ca",
+  {
+    accountId,
+    name: "aiven-mtg-ca",
+    ca: true,
+    certificates: readFileSync(join(__dirname, "aiven-ca.pem"), "utf8"),
+  },
+  {
+    import: `${accountId}/9b22ca80-4209-4fc8-a236-19b0450b2bad`,
+    // Cloudflare may store the PEM text formatted differently; the certificate is the same
+    ignoreChanges: ["certificates"],
+    protect: true,
+  },
+);
 
 /**
  * Hyperdrive in front of the hosted MySQL: pooled connections for the API
