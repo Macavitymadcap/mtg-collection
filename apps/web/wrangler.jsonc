@@ -1,0 +1,17 @@
+{
+  // The web app (Next.js, built with OpenNext) as a Cloudflare Worker. It
+  // reaches the API through a service binding, not over the internet.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "mtg-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "services": [{ "binding": "API", "service": "mtg-api" }],
+  "vars": {
+    // Only the path matters: requests go through the API binding (see src/lib/api-fetch.ts)
+    "API_BASE_URL": "https://mtg-api.internal/api",
+  },
+}

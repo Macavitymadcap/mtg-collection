@@ -1,9 +1,19 @@
 import "server-only";
 import { NextResponse } from "next/server";
+import { apiFetch } from "@/lib/api-fetch";
 import { env } from "@/lib/env";
 
 /** Request headers Better Auth needs: who's asking, from where, and their cookies. */
-const REQUEST_HEADERS = ["cookie", "content-type", "origin", "referer", "user-agent", "x-forwarded-for"];
+const REQUEST_HEADERS = [
+  "cookie",
+  "content-type",
+  "origin",
+  "referer",
+  "user-agent",
+  "x-forwarded-for",
+  // The visitor's IP on Cloudflare, for Better Auth's rate limiting
+  "cf-connecting-ip",
+];
 /** Response headers to pass back: cookies it sets, where to go next, and caching. */
 const RESPONSE_HEADERS = ["set-cookie", "location", "content-type", "cache-control"];
 
@@ -39,7 +49,7 @@ export async function proxyAuth(request: Request): Promise<Response> {
   }
 
   try {
-    const upstream = await fetch(url, {
+    const upstream = await apiFetch(url, {
       method: request.method,
       headers,
       body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),

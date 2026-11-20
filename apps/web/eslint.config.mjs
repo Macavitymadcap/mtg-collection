@@ -36,6 +36,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Coverage reports
     "coverage/**",
+    // Cloudflare builds (OpenNext output) and Wrangler's local state
+    ".open-next/**",
+    ".wrangler/**",
   ]),
   // Last: turns off rules that would fight Prettier
   eslintConfigPrettier,
