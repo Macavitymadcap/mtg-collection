@@ -8,10 +8,24 @@ const REQUEST_HEADERS = ["cookie", "content-type", "origin", "referer", "user-ag
 const RESPONSE_HEADERS = ["set-cookie", "location", "content-type", "cache-control"];
 
 /**
+ * True for a browser opening the URL as a page (e.g. coming back from
+ * GitHub), rather than the app fetching it in the background.
+ */
+function isPageLoad(request: Request): boolean {
+  return request.method === "GET" && request.headers.get("sec-fetch-mode") === "navigate";
+}
+
+/** Sends a browser that opened an auth URL to the site's error page, rather than showing it JSON. */
+function errorPage(request: Request, status: number): Response {
+  return NextResponse.redirect(new URL(`/error?status=${status}`, request.url), 303);
+}
+
+/**
  * Passes sign-in, sign-out and session requests through to the API's Better
  * Auth routes as they are. The site and the API share the /api/auth path, so
  * the browser only ever sees the site, and the cookies are the site's.
  * Redirects (to GitHub, and back after signing in) go back to the browser.
+ * Errors on pages the browser opened itself go to the error page.
  */
 export async function proxyAuth(request: Request): Promise<Response> {
   const incoming = new URL(request.url);
@@ -33,6 +47,8 @@ export async function proxyAuth(request: Request): Promise<Response> {
       signal: AbortSignal.timeout(15_000),
     });
 
+    if (upstream.status >= 400 && isPageLoad(request)) return errorPage(request, upstream.status);
+
     const response = new NextResponse(upstream.body, { status: upstream.status });
     for (const name of RESPONSE_HEADERS) {
       if (name === "set-cookie") {
@@ -44,6 +60,7 @@ export async function proxyAuth(request: Request): Promise<Response> {
     }
     return response;
   } catch {
+    if (isPageLoad(request)) return errorPage(request, 502);
     return NextResponse.json({ name: "BadGateway", message: "Sign-in is unavailable" }, { status: 502 });
   }
 }

@@ -4,6 +4,7 @@ import { renderHook, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { server } from "../../../test/msw";
+import { navigation } from "../../../test/router";
 import { renderWithProviders } from "../../../test/render";
 import { sessionKey, useSession } from "./queries";
 import { RequireSignIn } from "./require-sign-in";
@@ -118,13 +119,27 @@ describe("SignInError", () => {
       onUrlUpdate: (event) => updates.push(event.queryString),
     });
 
-    expect(await screen.findByText("That GitHub account isn't allowed to sign in here.")).toBeInTheDocument();
+    expect(await screen.findByText(/That GitHub account isn't allowed to sign in here/)).toBeInTheDocument();
     await vi.waitFor(() => expect(updates).toEqual(["?tab=stats"]));
   });
 
-  it("has a general message for other failures", async () => {
-    renderWithProviders(<SignInError />, { searchParams: "?error=invalid_code" });
-    expect(await screen.findByText("Couldn't sign in. Try again.")).toBeInTheDocument();
+  it("explains other failures too", async () => {
+    renderWithProviders(<SignInError />, { searchParams: "?error=access_denied" });
+    expect(
+      await screen.findByText("Signing in was cancelled on GitHub, so you're still browsing as a visitor."),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves the error page to explain the error itself", () => {
+    navigation.pathname = "/error";
+    const updates: string[] = [];
+    renderWithProviders(<SignInError />, {
+      searchParams: "?error=state_mismatch",
+      onUrlUpdate: (event) => updates.push(event.queryString),
+    });
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(updates).toEqual([]);
   });
 
   it("says nothing when there's no error", () => {

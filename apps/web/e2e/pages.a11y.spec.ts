@@ -10,6 +10,7 @@ const pages: [string, (page: Page) => Promise<void>][] = [
   ["import", (page) => page.goto("/collection/import").then(() => undefined)],
   ["decks", (page) => page.goto("/decks").then(() => undefined)],
   ["data", (page) => page.goto("/settings/data").then(() => undefined)],
+  ["error", (page) => page.goto("/error?error=state_mismatch").then(() => undefined)],
   [
     "deck builder",
     async (page) => {
@@ -54,7 +55,9 @@ async function violations(page: Page): Promise<string[]> {
 // What visitors see differs: read-only pages and the sign-in prompt
 test.describe("signed out", () => {
   test.use({ signedIn: false });
-  const visitorPages = pages.filter(([name]) => ["collection", "add cards", "deck builder", "card"].includes(name));
+  const visitorPages = pages.filter(([name]) =>
+    ["collection", "add cards", "deck builder", "card", "error"].includes(name),
+  );
 
   for (const [name, open] of visitorPages) {
     test(`${name} has no accessibility violations`, async ({ page }) => {

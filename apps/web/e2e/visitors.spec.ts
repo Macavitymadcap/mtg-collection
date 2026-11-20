@@ -23,6 +23,14 @@ test.describe("visitors", () => {
     await expect(page.getByRole("button", { name: "New deck" })).toHaveCount(0);
   });
 
+  test("land on the error page from an expired or forged GitHub return, not raw JSON", async ({ page }) => {
+    await page.goto("/api/auth/callback/github?code=forged&state=forged");
+
+    await expect(page).toHaveURL(/\/error\?error=state_/);
+    await expect(page.getByRole("heading", { name: "Sign-in expired" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in again" })).toBeVisible();
+  });
+
   test("are asked to sign in on pages that make changes", async ({ page }) => {
     await page.goto("/collection/add");
 

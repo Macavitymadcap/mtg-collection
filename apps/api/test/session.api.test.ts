@@ -242,6 +242,11 @@ describe("signing in through GitHub", () => {
     expect(await db("auth_user").count({ count: "*" }).first()).toEqual({ count: 0 });
   });
 
+  it("sends an expired or forged return from GitHub to the site's error page", async () => {
+    const response = await request(app).get("/api/auth/callback/github?code=code&state=forged").expect(302);
+    expect(response.headers.location).toMatch(new RegExp(`^${config.AUTH_BASE_URL}/error\\?error=state_`));
+  });
+
   it("doesn't let a signed-in user change their GitHub login", async () => {
     const cookie = await signIn("allowed-tester");
 

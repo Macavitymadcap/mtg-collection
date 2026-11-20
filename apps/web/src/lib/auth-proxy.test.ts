@@ -74,4 +74,38 @@ describe("proxyAuth", () => {
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({ name: "BadGateway", message: "Sign-in is unavailable" });
   });
+
+  it("sends a browser that opened a failing auth URL to the error page", async () => {
+    server.use(http.get(`${API}/auth/callback/github`, () => HttpResponse.json({ code: "BAD" }, { status: 400 })));
+
+    const response = await proxyAuth(
+      new Request("http://localhost:3000/api/auth/callback/github?code=x", {
+        headers: { "sec-fetch-mode": "navigate" },
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost:3000/error?status=400");
+  });
+
+  it("does the same when the API can't be reached", async () => {
+    server.use(http.get(`${API}/auth/callback/github`, () => HttpResponse.error()));
+
+    const response = await proxyAuth(
+      new Request("http://localhost:3000/api/auth/callback/github", { headers: { "sec-fetch-mode": "navigate" } }),
+    );
+
+    expect(response.headers.get("location")).toBe("http://localhost:3000/error?status=502");
+  });
+
+  it("returns errors as JSON to the app's own requests", async () => {
+    server.use(http.get(`${API}/auth/get-session`, () => HttpResponse.json({ code: "BAD" }, { status: 400 })));
+
+    const response = await proxyAuth(
+      new Request("http://localhost:3000/api/auth/get-session", { headers: { "sec-fetch-mode": "cors" } }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ code: "BAD" });
+  });
 });
