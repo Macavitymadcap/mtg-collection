@@ -2,6 +2,7 @@ import "server-only";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
+import { apiFetch } from "@/lib/api-fetch";
 import { env } from "@/lib/env";
 
 /**
@@ -52,7 +53,7 @@ export async function forward(request: Request, { path, bodySchema }: ForwardOpt
   }
 
   try {
-    const upstream = await fetch(url, {
+    const upstream = await apiFetch(url, {
       method: request.method,
       headers: {
         Authorization: `Bearer ${serviceToken()}`,

@@ -69,7 +69,12 @@ export function createAuth(config: Config, plugins: BetterAuthPlugin[] = []) {
     },
     account: { modelName: "auth_account" },
     verification: { modelName: "auth_verification" },
-    advanced: { cookiePrefix: "mtg" },
+    advanced: {
+      cookiePrefix: "mtg",
+      // The visitor's IP, for rate limiting: Cloudflare's header, passed on by the site's
+      // /api/auth pass-through (the API itself is only reachable through the site)
+      ipAddress: { ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"] },
+    },
     // Failed sign-ins without a page to go back to (e.g. an expired GitHub link) go to the site's error page
     onAPIError: { errorURL: new URL("/error", config.AUTH_BASE_URL).href },
     // There are no account settings: names, emails and GitHub logins come from GitHub

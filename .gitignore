@@ -9,3 +9,8 @@ apps/api/src/generated
 CLAUDE.local.md
 playwright-report
 test-results
+
+# Cloudflare builds and local state
+.open-next/
+.wrangler/
+.dev.vars*
