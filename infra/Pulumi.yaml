@@ -1,0 +1,6 @@
+name: mtg-infra
+description: Cloudflare resources for MTG Collection (Hyperdrive to the hosted MySQL)
+runtime:
+  name: nodejs
+  options:
+    packagemanager: npm

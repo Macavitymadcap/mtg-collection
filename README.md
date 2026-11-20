@@ -187,6 +187,68 @@ GitHub Actions runs the same checks, plus a production build, on every pull
 request and push to `main` (`.github/workflows/ci.yml`), then the browser
 tests, against a MySQL 8.4 service container. Dependabot opens weekly update pull requests.
 
+## Deployment
+
+The site runs on Cloudflare Workers at
+[mtg-web.dank-shelf.workers.dev](https://mtg-web.dank-shelf.workers.dev):
+
+```text
+Browser ──▶ mtg-web (Next.js via OpenNext) ──service binding──▶ mtg-api (Express) ──Hyperdrive──▶ MySQL (Aiven)
+```
+
+- **`mtg-web`** (`apps/web/wrangler.jsonc`) is the only public part. It calls
+  the API through a service binding, Worker to Worker.
+- **`mtg-api`** (`apps/api/wrangler.jsonc`) has no public address. With
+  `DB_CONNECTIONS=per-request`, no database connection outlives its request,
+  as Workers require.
+- **Hyperdrive** pools connections to the hosted MySQL (Aiven, Frankfurt) and
+  checks its certificate against Aiven's CA (`infra/aiven-ca.pem`).
+- **Pulumi** (`infra/`, state in Pulumi Cloud, stack `prod`) manages the
+  Hyperdrive config and the CA certificate.
+
+Every push to `main` deploys once the checks pass (the `deploy` job in
+`.github/workflows/ci.yml`):
+
+1. `pulumi up`
+2. write the Hyperdrive id into `apps/api/wrangler.jsonc`
+3. run migrations straight against the database, over verified TLS
+4. deploy the API, then build and deploy the web app
+
+### One-time set-up
+
+Repository secrets (**Settings → Secrets and variables → Actions**):
+
+| Secret                  | What                                                               |
+| ----------------------- | ------------------------------------------------------------------ |
+| `CLOUDFLARE_API_TOKEN`  | Deploys Workers and manages Hyperdrive and the CA certificate      |
+| `CLOUDFLARE_ACCOUNT_ID` | The Cloudflare account                                             |
+| `PULUMI_ACCESS_TOKEN`   | A personal Pulumi Cloud token, for the `prod` stack's state        |
+| `MTG_DB_PASSWORD`       | The `mtg_app` database user's password (Hyperdrive and migrations) |
+
+Worker secrets are set once with Wrangler and stay across deploys. To change
+one, run it again (from `apps/api` or `apps/web`):
+
+| Worker    | Secrets                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------ |
+| `mtg-api` | `JWT_SECRET`, `AUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `AUTH_GITHUB_ALLOWLIST` |
+| `mtg-web` | `API_JWT_SECRET` (the same value as the API's `JWT_SECRET`)                                      |
+
+```bash
+npx wrangler secret put AUTH_SECRET          # prompts for the value
+```
+
+The production GitHub OAuth app's callback URL is
+`https://mtg-web.dank-shelf.workers.dev/api/auth/callback/github`.
+
+### Deploying by hand
+
+```bash
+cd apps/api && npx wrangler deploy
+cd apps/web && npm run cf:build && npx wrangler deploy
+```
+
+`npm run cf:preview` in `apps/web` runs the built web Worker locally.
+
 ## Notes
 
 - `npm run codegen` creates the generated, git-ignored files that linting and

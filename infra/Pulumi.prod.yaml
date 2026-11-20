@@ -1,0 +1,7 @@
+config:
+  mtg-infra:accountId: c01d233219d9c96a581afc6e72bc00c8
+  # The hosted MySQL (Aiven, DigitalOcean fra). Its password comes from the MTG_DB_PASSWORD environment variable.
+  mtg-infra:dbHost: mysql-22a666f9-danielthekiernan-c773.g.aivencloud.com
+  mtg-infra:dbPort: "27123"
+  mtg-infra:dbName: mtg
+  mtg-infra:dbUser: mtg_app
