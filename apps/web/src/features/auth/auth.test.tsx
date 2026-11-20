@@ -7,6 +7,7 @@ import { server } from "../../../test/msw";
 import { renderWithProviders } from "../../../test/render";
 import { sessionKey, useSession } from "./queries";
 import { RequireSignIn } from "./require-sign-in";
+import { SignInError } from "./sign-in-error";
 import { UserMenu } from "./user-menu";
 
 const assign = vi.fn();
@@ -36,7 +37,9 @@ describe("UserMenu", () => {
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith("https://github.com/login/oauth/authorize?state=x"));
-    expect(bodies).toEqual([{ provider: "github", callbackURL: "/decks/3?tab=stats" }]);
+    expect(bodies).toEqual([
+      { provider: "github", callbackURL: "/decks/3?tab=stats", errorCallbackURL: "/decks/3?tab=stats" },
+    ]);
   });
 
   it("says when signing in fails", async () => {
@@ -104,6 +107,29 @@ describe("useSession", () => {
 
     await vi.waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBeNull();
+  });
+});
+
+describe("SignInError", () => {
+  it("says why GitHub sign-in was refused, and tidies the address", async () => {
+    const updates: string[] = [];
+    renderWithProviders(<SignInError />, {
+      searchParams: "?tab=stats&error=unable_to_create_user",
+      onUrlUpdate: (event) => updates.push(event.queryString),
+    });
+
+    expect(await screen.findByText("That GitHub account isn't allowed to sign in here.")).toBeInTheDocument();
+    await vi.waitFor(() => expect(updates).toEqual(["?tab=stats"]));
+  });
+
+  it("has a general message for other failures", async () => {
+    renderWithProviders(<SignInError />, { searchParams: "?error=invalid_code" });
+    expect(await screen.findByText("Couldn't sign in. Try again.")).toBeInTheDocument();
+  });
+
+  it("says nothing when there's no error", () => {
+    renderWithProviders(<SignInError />);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
 

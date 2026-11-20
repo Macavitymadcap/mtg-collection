@@ -1,6 +1,6 @@
 "use client";
 
-import type { JSX, ReactNode } from "react";
+import { Suspense, type JSX, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AppBar from "@mui/material/AppBar";
@@ -16,6 +16,7 @@ import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { useCanEdit } from "@/features/auth/queries";
+import { SignInError } from "@/features/auth/sign-in-error";
 import { UserMenu } from "@/features/auth/user-menu";
 import { ColorModeToggle } from "./color-mode-toggle";
 import { activeHref, mobileNavItems as allMobileNavItems, navItems as allNavItems, visibleItems } from "./nav-items";
@@ -45,6 +46,10 @@ export function AppShell({ children }: { children: ReactNode }): JSX.Element {
           </Typography>
           <ColorModeToggle />
           <UserMenu />
+          {/* Reads the query string, which needs a Suspense boundary */}
+          <Suspense>
+            <SignInError />
+          </Suspense>
         </Toolbar>
       </AppBar>
 

@@ -47,9 +47,11 @@ export function useCanEdit(): boolean {
 export function useSignIn(): UseMutationResult<void, Error, void> {
   return useMutation({
     mutationFn: async () => {
+      const here = window.location.pathname + window.location.search;
       const { url } = await api("/auth/sign-in/social", {
         method: "POST",
-        body: { provider: "github", callbackURL: window.location.pathname + window.location.search },
+        // Back to this page either way; a refusal adds ?error=<code> (see SignInError)
+        body: { provider: "github", callbackURL: here, errorCallbackURL: here },
         schema: z.object({ url: z.url() }),
       });
       window.location.assign(url);
