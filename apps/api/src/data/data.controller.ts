@@ -1,6 +1,6 @@
 import type { BackupImportSummary, DataCounts, ExportFile, ExportFileV1 } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { Body, Controller, Get, Post, Query, Response, Route, Security, Tags } from "tsoa";
+import { Body, Controller, Get, Post, Query, Response, Route, Security, Tags } from "@tsoa/runtime";
 import { DataService } from "./data.service.js";
 
 /** The whole database as JSON: backups, and moving to another environment. */

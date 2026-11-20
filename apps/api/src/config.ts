@@ -10,6 +10,21 @@ const schema = z.object({
   DB_PASSWORD: z.string(),
   DB_POOL_MIN: z.coerce.number().int().default(2),
   DB_POOL_MAX: z.coerce.number().int().default(10),
+  /**
+   * The database server's CA certificate (PEM text). When set, connections use
+   * TLS and check the server's certificate and host name against it. Hosted
+   * databases need this; the local Docker MySQL doesn't.
+   */
+  /**
+   * "pooled": one connection pool for the process (Node). "per-request": no
+   * connection outlives its request, as Cloudflare Workers require (the
+   * Worker sets this; Hyperdrive does the pooling there).
+   */
+  DB_CONNECTIONS: z.enum(["pooled", "per-request"]).default("pooled"),
+  DB_SSL_CA: z
+    .string()
+    .optional()
+    .transform((pem) => (pem ? pem.replace(/\\n/g, "\n") : undefined)),
   JWT_SECRET: z.string().min(16),
   LOG_LEVEL: z.enum(["error", "warn", "info", "http", "debug"]).default("info"),
   SCRYFALL_BASE_URL: z.url().default("https://api.scryfall.com"),

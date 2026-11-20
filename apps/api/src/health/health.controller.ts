@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
-import { Controller, Get, Response, Route, Tags } from "tsoa";
+import { Controller, Get, Response, Route, Tags } from "@tsoa/runtime";
 import { TYPES } from "../types.js";
 
 interface HealthStatus {

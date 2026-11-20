@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { ValidateError } from "tsoa";
+import { ValidateError } from "@tsoa/runtime";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { errorHandler, notFoundHandler } from "./error-handler.js";

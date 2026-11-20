@@ -17,7 +17,7 @@ import { config } from "./config.js";
 import { TransactionManager } from "./core/transaction.js";
 import { DataController } from "./data/data.controller.js";
 import { DataService } from "./data/data.service.js";
-import { createKnex } from "./db/knex.js";
+import { createDatabase } from "./db/database.js";
 import { DeckController } from "./decks/deck.controller.js";
 import { DeckRepository } from "./decks/deck.repository.js";
 import { DeckService } from "./decks/deck.service.js";
@@ -30,7 +30,7 @@ import { TYPES } from "./types.js";
 /** The DI container. Every service is a singleton: one instance per process. */
 export const container = new Container({ defaultScope: "Singleton" });
 
-container.bind<Knex>(TYPES.Knex).toConstantValue(createKnex(config));
+container.bind<Knex>(TYPES.Knex).toConstantValue(createDatabase(config));
 container.bind(TransactionManager).toSelf();
 // Browser tests sign in through a test-only route (see auth/test-sign-in.ts)
 container

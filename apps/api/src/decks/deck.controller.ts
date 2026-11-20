@@ -14,7 +14,7 @@ import {
   Security,
   SuccessResponse,
   Tags,
-} from "tsoa";
+} from "@tsoa/runtime";
 import { redactDeck } from "../auth/visibility.js";
 import { DeckService } from "./deck.service.js";
 

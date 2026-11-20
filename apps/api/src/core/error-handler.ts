@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
-import { ValidateError } from "tsoa";
+import { ValidateError } from "@tsoa/runtime";
 import { z, ZodError } from "zod";
 import { ApiError, BadRequest, Conflict, NotFound } from "./errors.js";
 import { logger } from "./logger.js";
