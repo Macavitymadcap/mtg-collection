@@ -11,8 +11,9 @@ Scryfall), import them in bulk, build decks from them, and export everything as 
 | `apps/api`        | Express 5 + tsoa + Inversify + Knex + MySQL, port 3400                                                       |
 | `apps/web`        | Next.js 16 + MUI 9 + TanStack Query, port 3000. Talks to the API through its own `/api` route handlers (BFF) |
 
-What's planned next (auth, deployment to Cloudflare, card scanning, mobile
-polish) is in [docs/ROADMAP.md](docs/ROADMAP.md).
+Anyone can browse the collection and decks; changes need signing in with
+GitHub (see [Signing in](#signing-in)). What's planned next (deployment to
+Cloudflare, card scanning, rules lookup …) is in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Set up
 
@@ -28,7 +29,65 @@ npm run dev                                # shared (watch) + API + web
 
 - Web: http://localhost:3000
 - API docs (Swagger UI): http://localhost:3400/docs
-- API token for curl: `npm run -s token -w @mtg/api`
+- API token for curl: `npm run -s token -w @mtg/api` (full access, for scripts and testing)
+
+The site runs read-only until sign-in is set up: follow [Signing in](#signing-in)
+to be able to make changes in the browser.
+
+## Signing in
+
+Anyone can browse the collection and decks. Adding, editing, importing and
+the Data page need signing in with GitHub, and only the GitHub accounts on an
+allowlist can sign in. Visitors don't see what you paid for cards, your notes
+or the "Spent" total.
+
+How it works: the API runs [Better Auth](https://www.better-auth.com), which
+keeps users and sessions in the `auth_*` tables. The web app passes
+`/api/auth/*` through to it, so the session cookie belongs to the site. The
+web app's own token to the API can only read; changes go through only with
+your session cookie, which the API checks.
+
+### Set up GitHub sign-in locally
+
+1. Create a GitHub OAuth app: go to
+   [github.com/settings/applications/new](https://github.com/settings/applications/new)
+   (or avatar → **Settings** → **Developer settings** → **OAuth Apps** →
+   **New OAuth App**). Make sure it's an **OAuth App**, not a GitHub App.
+   - **Application name:** `MTG Collection (local)`
+   - **Homepage URL:** `http://localhost:3000`
+   - **Authorization callback URL** (also called a **redirect URI**):
+     `http://localhost:3000/api/auth/callback/github`. It has to match
+     exactly: `http`, port 3000, no trailing slash.
+   - Leave **Enable Device Flow** unticked.
+2. Register it. Copy the **Client ID**, then **Generate a new client secret**
+   and copy that too (GitHub shows it only once).
+3. Fill these in `apps/api/.env`:
+
+   ```bash
+   AUTH_SECRET=<output of: openssl rand -base64 32>
+   AUTH_BASE_URL=http://localhost:3000
+   GITHUB_CLIENT_ID=<client ID>
+   GITHUB_CLIENT_SECRET=<client secret>
+   AUTH_GITHUB_ALLOWLIST=<your GitHub username>
+   ```
+
+4. Restart `npm run dev` (the API reads `.env` when it starts) and click
+   **Sign in**. GitHub asks you to authorise the app the first time, then
+   brings you back to the page you were on.
+
+| Setting                                    | What                                                                                                                                                  |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AUTH_SECRET`                              | Signs session cookies. At least 32 random characters; changing it signs everyone out                                                                  |
+| `AUTH_BASE_URL`                            | The site's address, where GitHub sends people back to. In production, the deployed site's URL                                                         |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | The OAuth app. Leave them blank and sign-in is off: the site is read-only                                                                             |
+| `AUTH_GITHUB_ALLOWLIST`                    | GitHub usernames that may sign in, comma-separated, any letter case. Taking someone off (and restarting the API) stops them at once, even mid-session |
+
+### In production
+
+Create a second OAuth app for the deployed site, with its own homepage URL and
+callback URL (`https://<site>/api/auth/callback/github`), so the production
+secret lives only in the deployment. Set the same settings as secrets there,
+with `AUTH_BASE_URL` set to the site's URL.
 
 ## Pages
 
@@ -36,9 +95,9 @@ npm run dev                                # shared (watch) + API + web
 | -------------------- | ------------------------------------------------------------------------------------------ |
 | `/`                  | Totals, recently added cards, deck shortcuts                                               |
 | `/collection`        | Table or image grid, with filters kept in the URL                                          |
-| `/collection/add`    | Search Scryfall by name, pick the printing, add copies                                     |
-| `/collection/import` | Import a ManaBox CSV or a preconstructed product                                           |
-| `/settings/data`     | Export everything to JSON, or replace the database from an export                          |
+| `/collection/add`    | Search Scryfall by name, pick the printing, add copies (signed in)                         |
+| `/collection/import` | Import a ManaBox CSV or a preconstructed product (signed in)                               |
+| `/settings/data`     | Export everything to JSON, or replace the database from an export (signed in)              |
 | `/collection/[id]`   | Edit copies (condition, flags, price …), change the printing, see which decks use them     |
 | `/decks`             | Every deck, with format, colours, size and warnings                                        |
 | `/decks/[id]`        | Deck builder: add owned cards to boards, quantities, mana curve, rule and ownership checks |
@@ -100,7 +159,10 @@ without Scryfall. Database ids are replaced by references (`c1`, `d1` …), so i
 can be loaded into any empty database, which is the plan for moving to a
 hosted environment later. The file format is `ExportFile` in
 `packages/shared/src/export.ts`; files are checked against its Zod schema
-(including that every reference resolves) before anything is written.
+(including that every reference resolves) before anything is written. The
+current format is version 2; version 1 files (which spelt the card fields
+`colors` and `colorIdentity`) still import. Sign-in accounts and sessions
+aren't included: after moving, people just sign in again.
 
 ## Checks
 
@@ -138,5 +200,11 @@ tests, against a MySQL 8.4 service container. Dependabot opens weekly update pul
 - `.git-blame-ignore-revs` lists formatting-only commits. Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once after cloning.
 
 ## Troubleshooting
+
+- **Pages show errors, or signing in fails, and the API logs `ECONNREFUSED 127.0.0.1:3310`.** MySQL isn't running (it stops when the machine restarts). Run `npm run db:up`; no need to restart `npm run dev`.
+- **GitHub says the redirect URI isn't associated with the application.** The OAuth app's callback URL doesn't match `http://localhost:3000/api/auth/callback/github` exactly.
+- **"Not allowed to sign in" for your own account.** Check `AUTH_GITHUB_ALLOWLIST` in `apps/api/.env` has your GitHub username, then restart `npm run dev`: the API only reads `.env` when it starts.
+- **Sign in shows "Provider not found".** `GITHUB_CLIENT_ID` or `GITHUB_CLIENT_SECRET` is blank in `apps/api/.env`, so sign-in is off.
+- **You approve on GitHub but land on "Couldn't sign in with GitHub".** The client secret is wrong (or was regenerated): copy a new one into `apps/api/.env` and restart.
 
 - **A page reloads itself over and over just after `npm run dev` starts.** Next 16.4's on-disk Turbopack dev cache did this on every warm start, so it's turned off in `apps/web/next.config.ts` (`turbopackFileSystemCacheForDev: false`). Dev restarts compile from scratch as a result. If it ever happens again, stop the dev server, run `rm -rf apps/web/.next`, and start it again.

@@ -5,27 +5,25 @@ Each section says what's involved, the decisions to make, and the risks found
 while researching (November 2026). Versions and service limits move quickly:
 re-check anything marked _verify_ before starting that work.
 
-| #   | Work                                                               | Depends on | Size   |
-| --- | ------------------------------------------------------------------ | ---------- | ------ |
-| 0   | [Continuous integration](#0-continuous-integration)                | –          | Small  |
-| 1   | [Visual polish and mobile](#1-visual-polish-and-mobile)            | –          | Medium |
-| 2   | [Accounts and auth (OpenAuth)](#2-accounts-and-auth)               | –          | Large  |
-| 3   | [Deploy to Cloudflare with Pulumi](#3-deployment)                  | 2          | Large  |
-| 4   | [Card scanning](#4-card-scanning)                                  | 1          | Medium |
-| 5   | [Rules lookup](#5-rules-lookup)                                    | –          | Medium |
-| 6   | [Game tracking](#6-game-tracking)                                  | 1 (2)      | Medium |
-| 7   | [Card data: legality and prices](#7-card-data-legality-and-prices) | –          | Medium |
-| 8   | [Deck builder improvements](#8-deck-builder-improvements)          | –          | Small  |
-| 9   | [Production hardening](#9-production-hardening)                    | 2, 3       | Medium |
+| #   | Work                                                               | Depends on | Size   | Status |
+| --- | ------------------------------------------------------------------ | ---------- | ------ | ------ |
+| 0   | [Continuous integration](#0-continuous-integration)                | –          | Small  | Done   |
+| 1   | [Visual polish and mobile](#1-visual-polish-and-mobile)            | –          | Medium | Done   |
+| 2   | [Accounts and auth](#2-accounts-and-auth)                          | –          | Large  | Done   |
+| 3   | [Deploy to Cloudflare with Pulumi](#3-deployment)                  | 2          | Large  | Next   |
+| 4   | [Card scanning](#4-card-scanning)                                  | 1          | Medium |        |
+| 5   | [Rules lookup](#5-rules-lookup)                                    | –          | Medium |        |
+| 6   | [Game tracking](#6-game-tracking)                                  | 1 (2)      | Medium |        |
+| 7   | [Card data: legality and prices](#7-card-data-legality-and-prices) | –          | Medium |        |
+| 8   | [Deck builder improvements](#8-deck-builder-improvements)          | –          | Small  |        |
+| 9   | [Production hardening](#9-production-hardening)                    | 2, 3       | Medium |        |
 
 Why this order: CI first so everything after it is checked on every push.
 Mobile polish before scanning, because scanning happens on a phone. Auth
-before deployment, because the app shouldn't go on the internet without it,
-and auth changes the data model (every row gets an owner), which is easier
-before there's a hosted database to migrate. Rules lookup stands alone and
+before deployment, because the app shouldn't go on the internet without it. Rules lookup stands alone and
 can slot in anywhere. Game tracking is played on a phone, so it follows the
-mobile work; it works without accounts, but saving games per person needs
-them. Card data and the deck builder improvements are independent. Hardening
+mobile work; anyone can use the tracker, but saving games, like any other
+change, needs signing in. Card data and the deck builder improvements are independent. Hardening
 goes with deployment: do it before the app is opened to anyone else.
 
 ---
@@ -89,102 +87,91 @@ DataGrid, the deck builder is two columns, and navigation is a drawer.
 
 ## 2. Accounts and auth
 
-### Goal
+**Done** (pull requests #17 and #18, November 2026).
 
-Sign in, with each person seeing only their own collection and decks. Today
-the web app's server routes (the BFF) sign a service token with full access,
-and anyone who can reach the app can use it.
+### What was decided
 
-### OpenAuth
+- **Better Auth inside the API**, rather than OpenAuth as first planned.
+  OpenAuth had gone quiet (last release 0.4.3 in March 2025, last commit April
+  2025). Better Auth is a library, not a separate service, so there's no
+  extra Worker to deploy, and it keeps its users and sessions in the same
+  MySQL database (`auth_*` tables).
+- **GitHub sign-in only, with an allowlist** of GitHub usernames
+  (`AUTH_GITHUB_ALLOWLIST`). There is no sign-up: anyone else is turned away
+  before a user is created, and someone taken off the list stops counting as
+  signed in straight away.
+- **Public read, sign in to edit.** One shared collection, not one per
+  person, so no `ownerId` columns. Visitors can browse everything except what
+  was paid for cards, notes and the "Spent" total, which the API leaves out
+  of its responses unless the request is signed in.
 
-[OpenAuth](https://openauth.js.org/) is a standalone, self-hosted OAuth 2.0
-server. It runs on Node, Bun or Cloudflare Workers; on Workers it stores its
-data (such as refresh tokens and password hashes) in Workers KV. It's still
-labelled **beta**. The code appears under both `sst/openauth` and
-`anomalyco/openauth`: _verify_ which repository and package
-(`@openauthjs/openauth`) are current before starting.
-
-### Design
+### How it fits together
 
 ```text
-Browser ──cookie──▶ Next.js BFF ──user's access token──▶ API ──▶ MySQL
-   │                    │                                 │
-   └──── sign-in ───▶ OpenAuth issuer ◀── JWKS (public keys) ┘
+Browser ──cookie──▶ Next.js BFF ──read-only token + cookie──▶ API (Better Auth) ──▶ MySQL
+                    /api/auth/* passed through as is ─────────▶ /api/auth/*
 ```
 
-1. **Issuer.** A small OpenAuth app in a new workspace, `apps/auth`. Start with
-   one provider: email code (passwordless) or GitHub. Its `success` callback
-   finds or creates the user and returns their id as the token's subject.
-2. **Web sign-in.** The BFF uses OpenAuth's client
-   (`@openauthjs/openauth/client`): authorisation code flow with PKCE, a
-   `/api/auth/callback` route handler, and access and refresh tokens kept in
-   an `httpOnly`, `Secure`, `SameSite=Lax` cookie. The browser never handles a
-   token. Pages require a session; unauthenticated visitors go to sign-in.
-3. **BFF to API.** `forward()` sends the **user's** access token (refreshing
-   it when needed) instead of signing its own. The service-token code stays
-   only for local scripts and tests.
-4. **API.** `expressAuthentication` verifies tokens against the issuer's
-   public keys (JWKS) instead of the shared `JWT_SECRET`; `jwks-rsa` is already
-   a dependency. Scopes stay as they are: ordinary users get `cards:read` and
-   `cards:write`, and `data:admin` becomes "my own data" for export and import.
-5. **Data model.** A migration adds `ownerId` to `collection_entry` and `deck`,
-   with unique keys including it (deck names are unique per owner; collection
-   entries per owner, printing, finish and so on). The `card` table stays
-   shared: it's a cache of Scryfall data. Every repository query filters by the
-   owner from the request context, with tests that one user can't read or
-   change another's data.
-6. **Export and import.** Become per user: export my data, replace my data.
-   The file format doesn't change.
-7. **Existing data.** The migration assigns current rows to the first account,
-   or you export now and import into your account after signing up.
+- The BFF's own token can only read. Changes need the person's session
+  cookie, which the BFF forwards and the API checks (tsoa's `editor`
+  security scheme: a session, or a token with the scope, for scripts).
+- `/api/auth/*` on the site passes straight through to the API, so the
+  cookies are the site's and the browser never sees the API.
+- Failed sign-ins go to the site's `/error` page, never raw JSON.
+- The README has the GitHub OAuth app set-up for local development.
 
-### Decisions
+### Follow-ups
 
-- Which sign-in providers: email code needs an email-sending service (for
-  example Resend); GitHub needs a GitHub OAuth app.
-- Whether anyone else will use it, or it's single-user with sign-in. If it's
-  single-user, a much smaller option is putting the whole app behind
-  Cloudflare Access (no code), and doing OpenAuth later.
+- An `Origin` check on the BFF's state-changing routes (see section 9).
+  Session cookies are `SameSite=Lax`, which already stops cross-site form
+  posts.
+- If the collection ever becomes per person (for example after merging with
+  shelf, below), that's when `ownerId` columns and per-owner queries come in.
 
 ---
 
 ## 3. Deployment
 
+### Decisions
+
+- **Cloudflare Workers Paid** from the start. The web Worker built with
+  OpenNext measured 2.87 MiB gzipped, just under the free plan's 3 MiB limit,
+  and the free plan's 10 ms of CPU per request is too tight for server
+  rendering. Paid raises these to 10 MiB and 30 s.
+- **Keep MySQL, through Hyperdrive.** No change to the schema, the queries or
+  local development (Docker MySQL). Needs a hosted MySQL provider: still to
+  choose (_verify_ current free tiers and pricing; requirements are MySQL 8,
+  TLS, and a region near `weur`).
+- **Modelled on the [shelf](https://github.com/Macavitymadcap/shelf) repo's
+  deployment**, which already works:
+  - Pulumi (state in Pulumi Cloud, a `prod` stack) creates the long-lived
+    resources; `infra/scripts/sync-wrangler.ts` writes their ids into
+    `wrangler.jsonc`.
+  - Wrangler builds and uploads the Workers.
+  - A `deploy` job in CI runs on `main` after the checks pass: `pulumi up`,
+    sync, migrations, deploy. It uses the repo secrets
+    `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `PULUMI_ACCESS_TOKEN`.
+  - The site starts on a `workers.dev` subdomain; a custom domain can come
+    later.
+
 ### Target
 
-Everything on Cloudflare, with infrastructure managed by Pulumi
-(TypeScript, in a new `infra/` workspace).
-
-| Part          | Runs as                                                     | Notes                                                                                                                                                                  |
-| ------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Web (Next.js) | Worker, built with `@opennextjs/cloudflare`                 | 1.19.x supports Next 16.2.3+ (we're on 16.4). It doesn't support `proxy.ts` yet (we don't use it). _verify_ before upgrading Next                                      |
-| API (Express) | Worker with `nodejs_compat`, via `httpServerHandler`        | Cloudflare's supported way to run an Express app; needs a compatibility date after 2025-08-15. See the risks below                                                     |
-| Auth          | Worker running the OpenAuth issuer, KV for storage          | Cloudflare template available                                                                                                                                          |
-| Database      | **Decision: hosted MySQL via Hyperdrive, or D1** (below)    |                                                                                                                                                                        |
-| Domains       | Custom domains on the Workers, e.g. `mtg.<domain>`, `auth.` | The API can stay private: only the web Worker calls it, through a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) |
-| Secrets       | Pulumi config secrets → Worker secrets                      | Replaces the `.env` files                                                                                                                                              |
-
-### The database decision
-
-|                 | A: Hyperdrive + hosted MySQL                                                                 | B: Cloudflare D1 (SQLite)                                                                            |
-| --------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Code changes    | Small: same MySQL schema and queries; `mysql2` ≥ 3.13 with `disableEval: true`; TLS required | Large: Knex can't use D1's binding, so the data layer moves to Kysely (with a D1 dialect) or Drizzle |
-| Hosting         | Needs a MySQL provider outside Cloudflare (costs vary; _verify_ free tiers)                  | Inside Cloudflare, with a free tier                                                                  |
-| Local dev       | Unchanged (Docker MySQL)                                                                     | SQLite locally through Wrangler; the Docker MySQL setup goes                                         |
-| Moving the data | Export → import (the JSON format was built for this)                                         | Same                                                                                                 |
-
-Hyperdrive's MySQL support became generally available in August 2026.
-Recommendation: **spike option A first**, because it keeps the code and what
-the backend guide teaches. Fall back to D1 if hosted MySQL costs too much, or
-the Worker spike below fails.
+| Part          | Runs as                                              | Notes                                                                                                                                                                       |
+| ------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web (Next.js) | Worker, built with `@opennextjs/cloudflare`          | Measured with 1.20.17 and Wrangler 4.163. _verify_ support before upgrading Next                                                                                            |
+| API (Express) | Worker with `nodejs_compat`, via `httpServerHandler` | Includes Better Auth. Private: only the web Worker calls it, through a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) |
+| Database      | Hosted MySQL through Hyperdrive                      | `mysql2` ≥ 3.13 with `disableEval: true`; TLS required                                                                                                                      |
+| Secrets       | Worker secrets, set from CI or Pulumi config secrets | `JWT_SECRET`, `AUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `AUTH_GITHUB_ALLOWLIST`, the database URL                                                          |
+| Sign-in       | A second GitHub OAuth app for the deployed site      | Callback `https://<site>/api/auth/callback/github`; `AUTH_BASE_URL` set to the site's URL                                                                                   |
 
 ### Risks to spike before committing
 
 1. **Connections per request.** Workers can't reuse I/O objects (database
-   connections) across requests. Today Inversify creates one Knex instance
-   with a connection pool for the process. On Workers that likely needs a
-   connection per request (cheap with Hyperdrive, which pools for you): make
-   the Knex binding request-scoped, or create it in a request middleware.
+   connections) across requests. Today Inversify creates one Knex instance,
+   and Better Auth its own `mysql2` pool, for the whole process. On Workers
+   both need a connection per request (cheap with Hyperdrive, which pools for
+   you): make the Knex and auth bindings request-scoped, or create them in a
+   request middleware.
 2. **Bundling Knex.** Knex `require`s every dialect it supports. Bundling for
    Workers may need the unused drivers marked as externals or aliased away.
 3. **Everything else in the API on Workers:** tsoa's generated routes,
@@ -196,32 +183,26 @@ If the API spike fails, alternatives: run the API unchanged as a Cloudflare
 Container (_verify_ availability and pricing), or move the API's routes into
 the Next.js app.
 
-### Pulumi
-
-The Cloudflare provider (v6) has the resources needed: `WorkersScript`,
-`D1Database`, `HyperdriveConfig` and `WorkersKvNamespace`, plus DNS and custom
-domains. Suggested split:
-
-- **Pulumi** creates the long-lived resources: KV namespace, database or
-  Hyperdrive config, DNS, custom domains, secrets.
-- **Wrangler** (the OpenNext adapter's normal path) builds and uploads the
-  Worker code, reading resource ids that Pulumi outputs.
-
-Managing the Worker scripts in Pulumi too is possible, but uploading
-OpenNext's build output and static assets through Pulumi needs checking.
-
 ### Steps
 
-1. Spike: API on a Worker against Hyperdrive and a hosted MySQL (or D1).
-2. Spike: web on a Worker with OpenNext, calling the API through a service
+1. Choose the MySQL provider and create the database (by hand, or in Pulumi
+   if the provider has one).
+2. Spike: API on a Worker against Hyperdrive.
+3. Spike: web on a Worker with OpenNext, calling the API through a service
    binding.
-3. `infra/` Pulumi project with `dev` and `prod` stacks.
-4. GitHub Actions deploy job: on merge to `main`, `pulumi up`, then
-   `wrangler deploy` for each Worker; migrations run before the API deploys.
-5. Load the data: `npm run db:export` locally, then import through the
+4. `infra/` Pulumi project (Hyperdrive config, secrets), following shelf's.
+5. CI `deploy` job, following shelf's: migrations run before the API deploys.
+6. Load the data: `npm run db:export` locally, then import through the
    deployed Data page (or the CLI pointed at production).
-6. Scheduled backups: a Cron Trigger that exports to R2 nightly, keeping a few
+7. Scheduled backups: a Cron Trigger that exports to R2 nightly, keeping a few
    weeks.
+
+### Later: one app for every collection
+
+shelf (books, records, board games) and this app may merge into one app for
+all collections. Not planned yet; until then, keep new code that isn't about
+Magic generic where it costs nothing (auth, the BFF, the error pages, the data
+export).
 
 ---
 
@@ -335,7 +316,7 @@ when the phone lies flat between players.
 
 Finishing a game saves a record:
 
-- **`game`:** format, date, duration, notes, and the owner once accounts exist.
+- **`game`:** format, date, duration and notes.
 - **`game_player`:** seat, player name, your deck (or a free-text deck name for
   opponents), commander, final life, placing, and what eliminated them
   (combat, commander damage, poison, concession …).
@@ -351,8 +332,8 @@ accounts.
    straight away.
 2. Game log: migrations, API endpoints, "save game" at the end of the
    tracker, and deck records.
-3. Include games in the JSON export and import (format version 2, still
-   accepting version 1 files).
+3. Include games in the JSON export and import (format version 3, still
+   accepting versions 1 and 2).
 
 ---
 
@@ -410,12 +391,13 @@ it's listed separately so none of it gets missed.
   Scryfall-backed lookups (which also protects our standing with Scryfall).
 - **Security headers:** a Content Security Policy (allowing Scryfall's image
   and symbol hosts), HSTS, and `X-Content-Type-Options`.
-- **CSRF protection** on the BFF's state-changing routes once sessions are
-  cookies: `SameSite=Lax` cookies plus an `Origin` check on `POST`, `PUT`,
-  `PATCH` and `DELETE`.
+- **CSRF protection** on the BFF's state-changing routes: sessions are
+  `SameSite=Lax` cookies already (and Better Auth checks `Origin` on its own
+  routes); add an `Origin` check on the BFF's `POST`, `PUT`, `PATCH` and
+  `DELETE` routes.
 - **Request limits:** the API accepts 25 MB bodies for whole-database imports;
   keep that limit on the import routes only and use a small default elsewhere.
-- **Observability:** Workers Logs for all three Workers, with the correlation
+- **Observability:** Workers Logs for both Workers, with the correlation
   ids that already flow from the web app through the API; error tracking for
   the browser.
 - **Backups and restore:** the nightly export to R2 from section 3, plus a
@@ -426,7 +408,8 @@ it's listed separately so none of it gets missed.
 
 ## Sources
 
-- OpenAuth: [docs](https://openauth.js.org/), [SST launch post](https://sst.dev/blog/openauth-beta), [Cloudflare Workers walkthrough](https://dev.to/sh20raj/deploying-a-self-hosted-openauth-server-on-cloudflare-workers-n49)
+- Better Auth: [docs](https://www.better-auth.com/docs), [GitHub provider](https://www.better-auth.com/docs/authentication/github)
+- Deployment model: [shelf](https://github.com/Macavitymadcap/shelf) (`infra/`, `.github/workflows/ci.yml`)
 - Next.js on Cloudflare: [OpenNext Cloudflare docs](https://opennext.js.org/cloudflare), [1.19.2 release notes](https://newreleases.io/project/github/opennextjs/opennextjs-cloudflare/release/@opennextjs%2Fcloudflare@1.19.2), [Next.js across platforms](https://nextjs.org/nextjs-across-platforms), [`proxy.ts` gap (MakerKit)](https://makerkit.dev/docs/next-supabase-turbo/cloudflare)
 - Express on Workers: [Cloudflare blog: Node.js HTTP servers on Workers](https://blog.cloudflare.com/bringing-node-js-http-servers-to-cloudflare-workers/), [Express tutorial](https://developers.cloudflare.com/workers/tutorials/deploy-an-express-app/index.md)
 - Hyperdrive and MySQL: [MySQL GA changelog](https://developers.cloudflare.com/changelog/post/2026-08-07-hyperdrive-mysql-ga/), [connect to MySQL](https://developers.cloudflare.com/hyperdrive/examples/connect-to-mysql), [launch blog post](https://blog.cloudflare.com/building-global-mysql-apps-with-cloudflare-workers-and-hyperdrive/)
