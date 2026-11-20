@@ -1,7 +1,7 @@
 import type { CollectionStats } from "@mtg/shared";
 import { inject, injectable } from "inversify";
 import type { Knex } from "knex";
-import { Controller, Get, Route, Security, Tags } from "tsoa";
+import { Controller, Get, Route, Security, Tags } from "@tsoa/runtime";
 import { CollectionRepository } from "../collection/collection.repository.js";
 import { redactStats } from "../auth/visibility.js";
 import { TYPES } from "../types.js";

@@ -23,7 +23,7 @@ import {
   Security,
   SuccessResponse,
   Tags,
-} from "tsoa";
+} from "@tsoa/runtime";
 import { redactEntry, visibleSort } from "../auth/visibility.js";
 import { CollectionService } from "./collection.service.js";
 

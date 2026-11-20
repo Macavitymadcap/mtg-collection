@@ -23,17 +23,18 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/morgan": "^1.9.10",
     "@types/node": "^24.19.2",
     "@types/supertest": "^7.2.1",
     "@types/swagger-ui-express": "^4.1.8",
     "@vitest/coverage-v8": "^5.1.0",
     "supertest": "^7.3.2",
     "tsx": "^4.23.15",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "wrangler": "^4.165.0"
   },
   "dependencies": {
     "@mtg/shared": "*",
+    "@tsoa/runtime": "^6.6.0",
     "better-auth": "^1.7.25",
     "cors": "^2.8.6",
     "csv-parse": "^7.0.3",
@@ -43,7 +44,6 @@
     "jwks-rsa": "^4.1.0",
     "knex": "^3.3.0",
     "kysely": "^0.29.9",
-    "morgan": "^1.12.1",
     "mysql2": "^3.24.6",
     "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",

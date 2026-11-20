@@ -14,6 +14,8 @@ export default defineConfig({
         // Entry points and scripts: thin wrappers run by hand, not by tests.
         // Migrations do run (in test/global-setup.ts), but before coverage starts.
         "src/server.ts",
+        "src/docs.ts",
+        "src/worker/**",
         "src/db/migrate.ts",
         "src/db/migrations/**",
         "src/scripts/**",

@@ -1,6 +1,6 @@
 import type { Card, PreconSummary } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { Controller, Get, Path, Query, Response, Route, Security, Tags } from "tsoa";
+import { Controller, Get, Path, Query, Response, Route, Security, Tags } from "@tsoa/runtime";
 import { NotFound } from "../core/errors.js";
 import { TYPES } from "../types.js";
 import type { CardCatalogue } from "./card-catalogue.js";

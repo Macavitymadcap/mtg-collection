@@ -1,6 +1,6 @@
 import type { ImportSummary, ManaboxImportRequest, PreconImportRequest } from "@mtg/shared";
 import { inject, injectable } from "inversify";
-import { Body, Controller, Post, Query, Response, Route, Security, Tags } from "tsoa";
+import { Body, Controller, Post, Query, Response, Route, Security, Tags } from "@tsoa/runtime";
 import { ImportService } from "./import.service.js";
 
 @injectable()

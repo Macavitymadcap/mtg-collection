@@ -2,6 +2,8 @@ import { betterAuth, type BetterAuthPlugin } from "better-auth";
 import { MysqlDialect } from "kysely";
 import { createPool } from "mysql2";
 import type { Config } from "../config.js";
+import { connectionPerQueryPool } from "../db/connection-per-query-pool.js";
+import { sslOptions } from "../db/knex.js";
 
 /** Where Better Auth's routes are served, on the API and (through the BFF) on the site. */
 export const AUTH_BASE_PATH = "/api/auth";
@@ -17,15 +19,21 @@ export function isAllowed(config: Pick<Config, "AUTH_GITHUB_ALLOWLIST">, login: 
  * sessions and linked accounts live in the auth_* tables.
  */
 export function createAuth(config: Config, plugins: BetterAuthPlugin[] = []) {
-  const pool = createPool({
+  const connection = {
     host: config.DB_HOST,
     port: config.DB_PORT,
     user: config.DB_USER,
     password: config.DB_PASSWORD,
     database: config.DB_NAME,
+    ssl: sslOptions(config),
+    disableEval: true, // see knex.ts
     timezone: "Z",
-    connectionLimit: 5,
-  });
+  };
+  // On Workers no connection may outlive its request (see db/database.ts)
+  const pool =
+    config.DB_CONNECTIONS === "per-request"
+      ? connectionPerQueryPool(connection)
+      : createPool({ ...connection, connectionLimit: 5 });
 
   const github =
     config.GITHUB_CLIENT_ID && config.GITHUB_CLIENT_SECRET

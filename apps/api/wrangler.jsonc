@@ -1,0 +1,28 @@
+{
+  // The API as a Cloudflare Worker. Express runs through Cloudflare's Node.js
+  // HTTP server support (httpServerHandler in src/worker.ts).
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "mtg-api",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  // Knex refers to every driver it supports; the app only uses mysql2
+  "alias": {
+    "mariadb/callback": "./src/worker/unused-driver.ts",
+    "mysql": "./src/worker/unused-driver.ts",
+    "oracledb": "./src/worker/unused-driver.ts",
+    "pg": "./src/worker/unused-driver.ts",
+    "pg-query-stream": "./src/worker/unused-driver.ts",
+    "sqlite3": "./src/worker/unused-driver.ts",
+    "better-sqlite3": "./src/worker/unused-driver.ts",
+    "tedious": "./src/worker/unused-driver.ts",
+  },
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "2eb6df3688ec4d78b73c74bd6409bd52" }],
+  "vars": {
+    "NODE_ENV": "production",
+    "LOG_LEVEL": "info",
+    "DB_CONNECTIONS": "per-request",
+  },
+}

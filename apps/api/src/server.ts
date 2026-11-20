@@ -1,11 +1,12 @@
 import type { Knex } from "knex";
 import { createApp } from "./app.js";
+import { addDocs } from "./docs.js";
 import { config } from "./config.js";
 import { logger } from "./core/logger.js";
 import { container } from "./ioc.js";
 import { TYPES } from "./types.js";
 
-const server = createApp().listen(config.PORT, () => {
+const server = createApp({ extraRoutes: addDocs }).listen(config.PORT, () => {
   logger.info(`Listening on http://localhost:${config.PORT} (docs at /docs, health at /api/health)`);
 });
 
