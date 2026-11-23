@@ -137,7 +137,7 @@ jobs:
       # Creates or updates the Hyperdrive config; the stack's state is in Pulumi Cloud
       - name: Cloudflare resources
         id: pulumi
-        uses: pulumi/actions@v6
+        uses: pulumi/actions@v7
         with:
           command: up
           stack-name: prod
